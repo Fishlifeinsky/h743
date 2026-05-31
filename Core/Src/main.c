@@ -85,6 +85,7 @@ static void MPU_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// Zeller 公式计算星期几 (RTC编码: 1=Mon..7=Sun)
 static int calc_weekday(int year, int month, int day)
 {
     // Zeller's congruence (Gregorian calendar)
@@ -99,6 +100,7 @@ static int calc_weekday(int year, int month, int day)
     return map[h];
 }
 
+// 解析 __DATE__/__TIME__ 编译时间写入RTC (编译时刻=启动时间)
 static void set_rtc_from_build_time(void)
 {
     static const char *months[] = {
@@ -141,6 +143,7 @@ static void set_rtc_from_build_time(void)
 #if BSP_FREERTOS_ENABLED
 static StackType_t  led_task_stack[128];
 static StaticTask_t led_task_tcb;
+// LED 闪烁任务 (100ms 周期, FreeRTOS)
 static void led_task(void *pvParameters)
 {
     (void)pvParameters;
@@ -152,6 +155,7 @@ static void led_task(void *pvParameters)
 
 static StackType_t  usb_task_stack[512];
 static StaticTask_t usb_task_tcb;
+// USB 设备轮询任务 (1ms 周期, FreeRTOS)
 static void usb_task(void *pvParameters)
 {
     (void)pvParameters;
@@ -165,6 +169,7 @@ static void usb_task(void *pvParameters)
 static StackType_t  init_task_stack[1024];
 static StaticTask_t init_task_tcb;\
 static char buff[64];
+// 初始化任务: RTOS资源/LCD测试/UART回传+时间戳 (FreeRTOS)
 static void init_task(void *pvParameters)
 {
     (void)pvParameters;
