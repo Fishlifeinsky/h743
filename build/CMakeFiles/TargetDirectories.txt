@@ -1,0 +1,6 @@
+D:/code/stm32/h743/build/CMakeFiles/h743.elf.dir
+D:/code/stm32/h743/build/CMakeFiles/edit_cache.dir
+D:/code/stm32/h743/build/CMakeFiles/rebuild_cache.dir
+D:/code/stm32/h743/build/platform/CMakeFiles/platform.dir
+D:/code/stm32/h743/build/platform/CMakeFiles/edit_cache.dir
+D:/code/stm32/h743/build/platform/CMakeFiles/rebuild_cache.dir
