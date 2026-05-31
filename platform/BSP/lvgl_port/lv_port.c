@@ -4,6 +4,9 @@
   *
   *          Direct render 模式：LVGL 直接渲染到 LTDC 层显存 (SDRAM)。
   *          DMA2D 硬件加速绘制 fill/blit，无需额外 flush。
+  *
+  *          心跳源: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
+  *                  BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
   */
 
 #include "lv_port.h"
@@ -12,6 +15,11 @@
 #include "lcd.h"
 
 #include "BSP/config.h"
+
+#if BSP_FREERTOS_ENABLED
+#include "FreeRTOS.h"
+#include "task.h"
+#endif
 
 //--------------------------------------------------------------------+
 // 内部全局变量
@@ -26,13 +34,30 @@ static bool g_lv_initialized = false;
 static void lv_port_display_init(void);
 
 //--------------------------------------------------------------------+
-// 外部接口
+// Tick 心跳
 //--------------------------------------------------------------------+
 
+#if BSP_FREERTOS_ENABLED
+
+// FreeRTOS 模式下由 tick hook 调用 lv_tick_inc(1ms)
+void vApplicationTickHook(void)
+{
+    lv_tick_inc(1);
+}
+
+#else
+
+// 裸机模式下使用 HAL tick
 uint32_t lv_port_tick_get(void)
 {
     return HAL_GetTick();
 }
+
+#endif
+
+//--------------------------------------------------------------------+
+// 外部接口
+//--------------------------------------------------------------------+
 
 void lv_port_init(void)
 {
