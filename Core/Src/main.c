@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "dma2d.h"
 #include "ltdc.h"
 #include "mdma.h"
 #include "quadspi.h"
@@ -52,6 +53,8 @@
 #include "usb_msc.h"
 #include "vendor.h"
 #include "lcd.h"
+#include "lv_port.h"
+#include "lvgl.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -181,6 +184,8 @@ static void init_task(void *pvParameters)
                        led_task_stack, &led_task_tcb);
     xTaskCreateStatic(usb_task, "usb", 512, NULL, 2,
                        usb_task_stack, &usb_task_tcb);
+    xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
+                       lvgl_task_stack, &lvgl_task_tcb);
 
     lcd_test();
 
@@ -204,6 +209,29 @@ static void init_task(void *pvParameters)
         write(uart, buff, s);
       }
       vTaskDelay(pdMS_TO_TICKS(10));
+    };
+}
+
+static StackType_t  lvgl_task_stack[4096];
+static StaticTask_t lvgl_task_tcb;
+// LVGL 任务: 初始化显示 + timer 心跳 (FreeRTOS)
+static void lvgl_task(void *pvParameters)
+{
+    (void)pvParameters;
+    lv_port_init();
+
+    // 简单按钮示例
+    lv_obj_t *btn = lv_button_create(lv_screen_active());
+    lv_obj_set_size(btn, 120, 50);
+    lv_obj_center(btn);
+
+    lv_obj_t *label = lv_label_create(btn);
+    lv_label_set_text(label, "Hello");
+    lv_obj_center(label);
+
+    for (;;) {
+        lv_timer_handler();
+        vTaskDelay(pdMS_TO_TICKS(5));
     };
 }
 #endif
@@ -258,6 +286,7 @@ int main(void)
   MX_SDMMC1_SD_Init();
   MX_RTC_Init();
   MX_LTDC_Init();
+  MX_DMA2D_Init();
   /* USER CODE BEGIN 2 */
   set_rtc_from_build_time();
   qspi_w25q64_init();              // 初始化W25Q64
