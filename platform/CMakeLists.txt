@@ -49,6 +49,12 @@ set(FREERTOS_SOURCES
     ${FREERTOS_DIR}/portable/MemMang/heap_3.c
 )
 
+# --- 3rd/lvgl ---
+set(LVGL_DIR ${PLATFORM_DIR}/3rd/lvgl)
+
+# LVGL 核心 + 全部子系统 (GLOB_RECURSE, gc-sections 自动裁掉未用文件)
+file(GLOB_RECURSE LVGL_SOURCES "${LVGL_DIR}/src/*.c")
+
 # --- BSP 模块 ---
 file(GLOB BSP_MODULES LIST_DIRECTORIES true ${PLATFORM_DIR}/BSP/*)
 
@@ -92,6 +98,7 @@ add_library(platform STATIC
     ${TLSF_SOURCES}
     ${FATFS_SOURCES}
     ${FREERTOS_SOURCES}
+    ${LVGL_SOURCES}
     ${BSP_SOURCES}
     ${ELIB_DIR}/list.c
     ${VFS_DIR}/vfs.c
@@ -111,6 +118,8 @@ target_include_directories(platform PUBLIC
     # fatfs
     ${FATFS_DIR}
     ${PLATFORM_DIR}/BSP/fatfs_port/include
+    # lvgl
+    ${LVGL_DIR}
     # BSP
     ${BSP_INCLUDES}
     # elib ( "elib/list.h" )
@@ -164,6 +173,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
         ${TLSF_SOURCES}
         ${FATFS_SOURCES}
         ${FREERTOS_SOURCES}
+        ${LVGL_SOURCES}
         PROPERTIES COMPILE_FLAGS "-w"
     )
 endif()
