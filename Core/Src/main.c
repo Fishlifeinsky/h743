@@ -271,7 +271,6 @@ int main(void)
   uart_init();                     // UART RXNE 中断在硬件初始化完成后才开启
   uart_vfs_init();
   lcd_init();
-  lcd_test();
 
 #if BSP_FREERTOS_ENABLED
   xTaskCreateStatic(init_task, "init", 1024, NULL, 3,
