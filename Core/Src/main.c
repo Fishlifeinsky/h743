@@ -169,6 +169,29 @@ static void usb_task(void *pvParameters)
     }
 }
 
+static StackType_t  lvgl_task_stack[4096];
+static StaticTask_t lvgl_task_tcb;
+// LVGL 任务: 初始化显示 + timer 心跳 (FreeRTOS)
+static void lvgl_task(void *pvParameters)
+{
+  (void)pvParameters;
+  lv_port_init();
+
+  // 简单按钮示例
+  lv_obj_t *btn = lv_button_create(lv_screen_active());
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_center(btn);
+
+  lv_obj_t *label = lv_label_create(btn);
+  lv_label_set_text(label, "Hello");
+  lv_obj_center(label);
+
+  for (;;) {
+    lv_timer_handler();
+    vTaskDelay(pdMS_TO_TICKS(5));
+  };
+}
+
 static StackType_t  init_task_stack[1024];
 static StaticTask_t init_task_tcb;\
 static char buff[64];
@@ -184,10 +207,8 @@ static void init_task(void *pvParameters)
                        led_task_stack, &led_task_tcb);
     xTaskCreateStatic(usb_task, "usb", 512, NULL, 2,
                        usb_task_stack, &usb_task_tcb);
-    xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
-                       lvgl_task_stack, &lvgl_task_tcb);
-
-    lcd_test();
+    // xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
+    //                    lvgl_task_stack, &lvgl_task_tcb);
 
     int uart = open("/dev/uart/COM0", O_RDWR);
     if (uart == -1) {
@@ -212,28 +233,6 @@ static void init_task(void *pvParameters)
     };
 }
 
-static StackType_t  lvgl_task_stack[4096];
-static StaticTask_t lvgl_task_tcb;
-// LVGL 任务: 初始化显示 + timer 心跳 (FreeRTOS)
-static void lvgl_task(void *pvParameters)
-{
-    (void)pvParameters;
-    lv_port_init();
-
-    // 简单按钮示例
-    lv_obj_t *btn = lv_button_create(lv_screen_active());
-    lv_obj_set_size(btn, 120, 50);
-    lv_obj_center(btn);
-
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, "Hello");
-    lv_obj_center(label);
-
-    for (;;) {
-        lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(5));
-    };
-}
 #endif
 /* USER CODE END 0 */
 

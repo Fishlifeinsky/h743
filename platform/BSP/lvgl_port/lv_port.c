@@ -13,6 +13,7 @@
 #include "lvgl.h"
 #include "ltdc.h"
 #include "lcd.h"
+#include "stm32h7xx_hal_dma.h"
 
 #include "BSP/config.h"
 
@@ -25,7 +26,6 @@
 // 内部全局变量
 //--------------------------------------------------------------------+
 
-DMA2D_HandleTypeDef hdma2d = {0};       // ST LVGL 驱动引用 (DMA2D flush 模式)
 static bool g_lv_initialized = false;
 
 //--------------------------------------------------------------------+

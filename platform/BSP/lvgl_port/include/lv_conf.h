@@ -47,7 +47,7 @@
 /*=================
  * OPERATING SYSTEM
  *=================*/
-#define LV_USE_OS   LV_OS_FREERTOS
+#define LV_USE_OS    LV_OS_NONE
 
 #if LV_USE_OS == LV_OS_FREERTOS
     #define LV_USE_FREERTOS_TASK_NOTIFY 1
@@ -224,7 +224,7 @@
 
 #define LV_USE_ANIMIMG    0
 #define LV_USE_ARC        0
-#define LV_USE_BAR        0
+#define LV_USE_BAR        1
 #define LV_USE_BUTTON        1
 #define LV_USE_BUTTONMATRIX  0
 #define LV_USE_CALENDAR   0

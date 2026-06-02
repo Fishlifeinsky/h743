@@ -15,10 +15,6 @@
 #include <string.h>
 #include <stdio.h>
 
-/* 当前 HAL 未定义 DMA2D 传输模式 */
-#define DMA2D_R2M      ((uint32_t)(DMA2D_CR_MODE_1 | DMA2D_CR_MODE_0))
-#define DMA2D_M2M_PFC  ((uint32_t)(DMA2D_CR_MODE_0))
-
 /* LTDC 时序参数 (适配 800x480 RGB 屏, 参考反客示例) */
 #define LCD_HSW  1
 #define LCD_VSW  1
