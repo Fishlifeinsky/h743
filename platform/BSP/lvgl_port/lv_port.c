@@ -2,8 +2,8 @@
   * @file    lv_port.c
   * @brief   LVGL v9 移植 (基于 lv_port_disp_template.c)
   *
-  *          Direct render 模式：LVGL 直接渲染到 SDRAM 显存，
-  *          LTDC 持续扫描输出，flush 无需拷贝像素。
+  *          Partial render 模式：LVGL 渲染到 DTCM 局部缓存，
+  *          flush 回调拷贝到 SDRAM 显存，LTDC 持续扫描输出。
   *
   *          心跳源: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
   *                  BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
@@ -14,7 +14,9 @@
  *********************/
 #include "lv_port.h"
 #include "lvgl.h"
+#include <string.h>
 #include "BSP/config.h"
+#include "mem.h"
 
 #if BSP_FREERTOS_ENABLED
 #include "FreeRTOS.h"
@@ -26,6 +28,7 @@
  *********************/
 #define MY_DISP_HOR_RES  800
 #define MY_DISP_VER_RES  480
+#define BUF_ROWS         40    /* DTCM 缓存行数 (800*40*4 = 128KB) */
 
 /**********************
  *  STATIC PROTOTYPES
@@ -36,6 +39,12 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
  *  STATIC VARIABLES
  **********************/
 static bool g_lv_initialized = false;
+
+/* DTCM 缓存: 128KB, 零等待, Cortex-M7 专用 */
+MEM_SRAM_DTCM_SECTION
+static uint8_t disp_buf_1[MY_DISP_HOR_RES * BUF_ROWS * 4];
+
+/* 双缓冲需要 256KB > DTCM 128KB, 仅用单缓冲 */
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -71,13 +80,14 @@ void lv_port_init(void)
 
     lv_init();
 
-    /* 创建显示 — direct render 到 SDRAM 显存 (LCD_MEM_ADDRESS, 已在 lcd_init 中配置) */
+    /* 创建显示 — partial render: DTCM 缓存 → flush 拷贝到 SDRAM 显存 */
     lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
     lv_display_set_flush_cb(disp, disp_flush);
 
-    extern uint8_t LCD_MEM_ADDRESS[];
-    uint32_t buf_size = MY_DISP_HOR_RES * MY_DISP_VER_RES * 4; /* ARGB8888 */
-    lv_display_set_buffers(disp, LCD_MEM_ADDRESS, NULL, buf_size, LV_DISPLAY_RENDER_MODE_DIRECT);
+    lv_display_set_buffers(disp,
+                           disp_buf_1, NULL,
+                           sizeof(disp_buf_1),
+                           LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     /* 默认主题: 白底黑字 */
     lv_theme_default_init(NULL,
@@ -87,17 +97,30 @@ void lv_port_init(void)
                           &lv_font_montserrat_14);
 
     g_lv_initialized = true;
-    DEBUG_PRINT("LVGL: port init ok, direct render 800x480 ARGB8888\r\n");
+    DEBUG_PRINT("LVGL: port init ok, partial render 800x480 ARGB8888, DTCM buf %d rows\r\n",
+                BUF_ROWS);
 }
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
 
-/* direct render 模式: LVGL 直接写入显存, LTDC 持续扫描, flush 无需拷贝 */
+/* 将 px_map 中的渲染结果逐行拷贝到 SDRAM 显存 */
 static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
-    (void)area;
-    (void)px_map;
+    extern uint8_t LCD_MEM_ADDRESS[];
+    uint32_t fb_w = MY_DISP_HOR_RES;
+    uint32_t w    = lv_area_get_width(area);
+    uint32_t h    = lv_area_get_height(area);
+    uint32_t line = w * 4; /* ARGB8888 */
+
+    for (uint32_t y = 0; y < h; y++) {
+        uint32_t * dst = (uint32_t *)&LCD_MEM_ADDRESS[((area->y1 + y) * fb_w + area->x1) * 4];
+        uint32_t * src = (uint32_t *)(px_map + y * line);
+        for (uint32_t x = 0; x < w; x++) {
+            dst[x] = src[x];
+        }
+    }
+
     lv_display_flush_ready(disp);
 }
