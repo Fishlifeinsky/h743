@@ -80,6 +80,10 @@ void lv_port_init(void)
 
     lv_init();
 
+#if !BSP_FREERTOS_ENABLED
+    lv_tick_set_cb(lv_port_tick_get);
+#endif
+
     /* lcd_clear() 用 DMA2D 填充 SDRAM 为黑色, 绕过了 CPU D-Cache.
      * 必须失效 Cache 以丢弃可能存在的脏数据, 确保后续 CPU 写入
      * 读到正确的 SDRAM 内容 (而非过时的 Cache 行). */

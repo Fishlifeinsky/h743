@@ -315,13 +315,25 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 #if !BSP_FREERTOS_ENABLED
+  lv_port_init();
+  lv_tick_set_cb(lv_port_tick_get);
+
+  lv_obj_t *btn = lv_button_create(lv_screen_active());
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_center(btn);
+  lv_obj_t *label = lv_label_create(btn);
+  lv_label_set_text(label, "Hello");
+  lv_obj_center(label);
+
   uint32_t t = HAL_GetTick();
   while (1)
   {
-  	if (HAL_GetTick()-t > 100) {
-  		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  		t = HAL_GetTick();
-  	}
+    lv_timer_handler();
+    if (HAL_GetTick()-t > 100) {
+      HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+      t = HAL_GetTick();
+    }
+    HAL_Delay(5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
