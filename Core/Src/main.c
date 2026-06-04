@@ -207,8 +207,8 @@ static void init_task(void *pvParameters)
                        led_task_stack, &led_task_tcb);
     xTaskCreateStatic(usb_task, "usb", 512, NULL, 2,
                        usb_task_stack, &usb_task_tcb);
-    // xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
-    //                    lvgl_task_stack, &lvgl_task_tcb);
+    xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
+                       lvgl_task_stack, &lvgl_task_tcb);
 
     int uart = open("/dev/uart/COM0", O_RDWR);
     if (uart == -1) {
