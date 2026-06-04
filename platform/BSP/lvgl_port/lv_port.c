@@ -1,20 +1,19 @@
 /**
   * @file    lv_port.c
-  * @brief   LVGL v9 移植 (STM32H7 + LTDC + DMA2D + FreeRTOS)
+  * @brief   LVGL v9 移植 (基于 lv_port_disp_template.c)
   *
-  *          Direct render 模式：LVGL 直接渲染到 LTDC 层显存 (SDRAM)。
-  *          DMA2D 硬件加速绘制 fill/blit，无需额外 flush。
+  *          Direct render 模式：LVGL 直接渲染到 SDRAM 显存，
+  *          LTDC 持续扫描输出，flush 无需拷贝像素。
   *
   *          心跳源: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
   *                  BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
   */
 
+/*********************
+ *      INCLUDES
+ *********************/
 #include "lv_port.h"
 #include "lvgl.h"
-#include "ltdc.h"
-#include "lcd.h"
-#include "stm32h7xx_hal_dma.h"
-
 #include "BSP/config.h"
 
 #if BSP_FREERTOS_ENABLED
@@ -22,16 +21,25 @@
 #include "task.h"
 #endif
 
-//--------------------------------------------------------------------+
-// 内部全局变量
-//--------------------------------------------------------------------+
+/*********************
+ *      DEFINES
+ *********************/
+#define MY_DISP_HOR_RES  800
+#define MY_DISP_VER_RES  480
 
+/**********************
+ *  STATIC PROTOTYPES
+ **********************/
+static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
+
+/**********************
+ *  STATIC VARIABLES
+ **********************/
 static bool g_lv_initialized = false;
 
-//--------------------------------------------------------------------+
-// 内部函数声明
-//--------------------------------------------------------------------+
-static void lv_port_display_init(void);
+/**********************
+ *   GLOBAL FUNCTIONS
+ **********************/
 
 //--------------------------------------------------------------------+
 // Tick 心跳
@@ -39,7 +47,6 @@ static void lv_port_display_init(void);
 
 #if BSP_FREERTOS_ENABLED
 
-// FreeRTOS 模式下由 tick hook 调用 lv_tick_inc(1ms)
 void vApplicationTickHook(void)
 {
     lv_tick_inc(1);
@@ -47,7 +54,6 @@ void vApplicationTickHook(void)
 
 #else
 
-// 裸机模式下使用 HAL tick
 uint32_t lv_port_tick_get(void)
 {
     return HAL_GetTick();
@@ -56,7 +62,7 @@ uint32_t lv_port_tick_get(void)
 #endif
 
 //--------------------------------------------------------------------+
-// 外部接口
+// LVGL 初始化
 //--------------------------------------------------------------------+
 
 void lv_port_init(void)
@@ -64,26 +70,34 @@ void lv_port_init(void)
     if (g_lv_initialized) return;
 
     lv_init();
-    lv_port_display_init();
-    g_lv_initialized = true;
 
-    DEBUG_PRINT("LVGL: port init ok, LTDC+DMA2D, ARGB8888\r\n");
-}
+    /* 创建显示 — direct render 到 SDRAM 显存 (LCD_MEM_ADDRESS, 已在 lcd_init 中配置) */
+    lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
+    lv_display_set_flush_cb(disp, disp_flush);
 
-//--------------------------------------------------------------------+
-// 显示初始化 (ST LTDC 驱动, Direct Render 模式)
-//--------------------------------------------------------------------+
-
-static void lv_port_display_init(void)
-{
-    // direct 模式: LVGL 直接渲染到层显存, HLDC Layer0 已在 lcd_init() 中配置
     extern uint8_t LCD_MEM_ADDRESS[];
-    lv_st_ltdc_create_direct((void *)LCD_MEM_ADDRESS, NULL, 0);
+    uint32_t buf_size = MY_DISP_HOR_RES * MY_DISP_VER_RES * 4; /* ARGB8888 */
+    lv_display_set_buffers(disp, LCD_MEM_ADDRESS, NULL, buf_size, LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    // 设置默认主题
+    /* 默认主题: 白底黑字 */
     lv_theme_default_init(NULL,
                           lv_color_make(0xFF, 0xFF, 0xFF),
                           lv_color_make(0x00, 0x00, 0x00),
                           0,
                           &lv_font_montserrat_14);
+
+    g_lv_initialized = true;
+    DEBUG_PRINT("LVGL: port init ok, direct render 800x480 ARGB8888\r\n");
+}
+
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+
+/* direct render 模式: LVGL 直接写入显存, LTDC 持续扫描, flush 无需拷贝 */
+static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
+{
+    (void)area;
+    (void)px_map;
+    lv_display_flush_ready(disp);
 }

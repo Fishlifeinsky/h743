@@ -1,3 +1,8 @@
+/**
+  * @file    lv_port.h
+  * @brief   LVGL v9 移植头文件 (基于 lv_port_disp_template.h)
+  */
+
 #ifndef BSP_LV_PORT_H_
 #define BSP_LV_PORT_H_
 
@@ -8,15 +13,13 @@
 extern "C" {
 #endif
 
-//--------------------------------------------------------------------+
-// 外部接口
-//--------------------------------------------------------------------+
+/**********************
+ * GLOBAL PROTOTYPES
+ **********************/
 
-// 初始化 LVGL (显示 + DMA2D + tick)
 void lv_port_init(void);
 
 #if !BSP_FREERTOS_ENABLED
-// LVGL 自定义 tick 源 (LV_TICK_CUSTOM_SYS_TIME_EXPR), 仅裸机模式
 uint32_t lv_port_tick_get(void);
 #endif
 
