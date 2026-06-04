@@ -83,6 +83,7 @@ void lv_port_init(void)
 
     /* 创建显示 — partial render: DTCM 缓存 → flush 拷贝到 SDRAM 显存 */
     lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
+    lv_display_set_color_format(disp, LV_COLOR_FORMAT_ARGB8888);
     lv_display_set_flush_cb(disp, disp_flush);
 
     lv_display_set_buffers(disp,
@@ -121,7 +122,7 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
         for (uint32_t x = 0; x < w; x++) {
             dst[x] = src[x];
         }
-        SCB_CleanDCache_by_Addr(dst, (int32_t)(w * 4));
+        SCB_CleanInvalidateDCache_by_Addr(dst, (int32_t)(w * 4));
     }
 
     lv_display_flush_ready(disp);
