@@ -17,6 +17,7 @@
 #include <string.h>
 #include "BSP/config.h"
 #include "mem.h"
+#include "stm32h7xx_hal.h"
 
 #if BSP_FREERTOS_ENABLED
 #include "FreeRTOS.h"
@@ -120,6 +121,7 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
         for (uint32_t x = 0; x < w; x++) {
             dst[x] = src[x];
         }
+        SCB_CleanDCache_by_Addr(dst, (int32_t)(w * 4));
     }
 
     lv_display_flush_ready(disp);
