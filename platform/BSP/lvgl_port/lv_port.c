@@ -1,12 +1,14 @@
 /**
   * @file    lv_port.c
-  * @brief   LVGL v9 移植 (基于 lv_port_disp_template.c)
+  * @brief   LVGL v9 移植 — partial render + DMA2D flush
   *
-  *          Partial render 模式：LVGL 渲染到 DTCM 局部缓存，
-  *          flush 回调拷贝到 SDRAM 显存，LTDC 持续扫描输出。
+  *          LVGL 渲染到 DTCM 局部缓存 (零等待),
+  *          flush 回调通过 DMA2D 拷贝到 SDRAM 显存,
+  *          DMA2D 绕过 CPU D-Cache 直接写 SDRAM,
+  *          LTDC 常量扫描输出到 LCD 面板.
   *
-  *          心跳源: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
-  *                  BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
+  *          心跳: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
+  *                BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
   */
 
 /*********************
@@ -29,7 +31,7 @@
  *********************/
 #define MY_DISP_HOR_RES  800
 #define MY_DISP_VER_RES  480
-#define BUF_ROWS         40    /* DTCM 缓存行数 (800*40*4 = 128KB) */
+#define BUF_ROWS         40
 
 /**********************
  *  STATIC PROTOTYPES
@@ -41,11 +43,9 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
  **********************/
 static bool g_lv_initialized = false;
 
-/* DTCM 缓存: 128KB, 零等待, Cortex-M7 专用 */
+/* DTCM 渲染缓存: 128KB, 零等待, Cortex-M7 AHBS 口可被 DMA2D 访问 */
 MEM_SRAM_DTCM_SECTION
 static uint8_t disp_buf_1[MY_DISP_HOR_RES * BUF_ROWS * 4];
-
-/* 双缓冲需要 256KB > DTCM 128KB, 仅用单缓冲 */
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -81,7 +81,7 @@ void lv_port_init(void)
 
     lv_init();
 
-    /* 创建显示 — partial render: DTCM 缓存 → flush 拷贝到 SDRAM 显存 */
+    /* 创建显示 — partial render: DTCM 缓存 → DMA2D → SDRAM 显存 */
     lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_ARGB8888);
     lv_display_set_flush_cb(disp, disp_flush);
@@ -99,7 +99,7 @@ void lv_port_init(void)
                           &lv_font_montserrat_14);
 
     g_lv_initialized = true;
-    DEBUG_PRINT("LVGL: port init ok, partial render 800x480 ARGB8888, DTCM buf %d rows\r\n",
+    DEBUG_PRINT("LVGL: port init ok, DMA2D flush 800x480 ARGB8888, DTCM buf %d rows\r\n",
                 BUF_ROWS);
 }
 
@@ -107,23 +107,27 @@ void lv_port_init(void)
  *   STATIC FUNCTIONS
  **********************/
 
-/* 将 px_map 中的渲染结果逐行拷贝到 SDRAM 显存 */
+/* DMA2D 拷贝 ARGB8888 矩形: px_map (DTCM) → SDRAM 帧缓冲 (绕过 D-Cache) */
 static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
     extern uint8_t LCD_MEM_ADDRESS[];
     uint32_t fb_w = MY_DISP_HOR_RES;
     uint32_t w    = lv_area_get_width(area);
     uint32_t h    = lv_area_get_height(area);
-    uint32_t line = w * 4; /* ARGB8888 */
 
-    for (uint32_t y = 0; y < h; y++) {
-        uint32_t * dst = (uint32_t *)&LCD_MEM_ADDRESS[((area->y1 + y) * fb_w + area->x1) * 4];
-        uint32_t * src = (uint32_t *)(px_map + y * line);
-        for (uint32_t x = 0; x < w; x++) {
-            dst[x] = src[x];
-        }
-        SCB_CleanInvalidateDCache_by_Addr(dst, (int32_t)(w * 4));
-    }
+    uint32_t dst_addr = (uint32_t)&LCD_MEM_ADDRESS[(area->y1 * fb_w + area->x1) * 4];
+
+    DMA2D->CR     &= ~(DMA2D_CR_START);
+    DMA2D->CR      = DMA2D_M2M_PFC;
+    DMA2D->FGMAR   = (uint32_t)px_map;
+    DMA2D->OMAR    = dst_addr;
+    DMA2D->FGPFCCR = 0;    /* ARGB8888 */
+    DMA2D->OPFCCR  = 0;    /* ARGB8888 */
+    DMA2D->FGOR    = 0;    /* px_map 行连续, 无行间偏移 */
+    DMA2D->OOR     = fb_w - w; /* 目标帧缓冲行间跳过 (fb_w - w) 像素 */
+    DMA2D->NLR     = ((uint32_t)w << 16) | (uint32_t)h;
+    DMA2D->CR     |= DMA2D_CR_START;
+    while (DMA2D->CR & DMA2D_CR_START);
 
     lv_display_flush_ready(disp);
 }
