@@ -107,7 +107,7 @@ void tlsf_port_free(void *ptr) {
 }
 
 void *tlsf_port_realloc(void *ptr, size_t size) {
-    if (!ptr) return NULL;
+    if (!ptr) return tlsf_port_malloc(size, BSP_MALLOC_DEFAULT_POOL);
     tlsf_port_pool_t pool = get_pool_by_addr(ptr);
     if (pool >= TLSF_PORT_POOL_COUNT) {
         DEBUG_PRINT("TLSF: realloc bad ptr %p\r\n", ptr);
