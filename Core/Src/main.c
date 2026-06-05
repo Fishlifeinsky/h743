@@ -55,6 +55,7 @@
 #include "lcd.h"
 #include "lv_port.h"
 #include "lvgl.h"
+#include "touch_800x480.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -326,9 +327,15 @@ int main(void)
   lv_obj_center(label);
 
   uint32_t t = HAL_GetTick();
+  Touch_Init();
   while (1)
   {
     lv_timer_handler();
+    Touch_Scan();
+    if (touchInfo.flag) {
+      DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
+                  touchInfo.num, touchInfo.x[0], touchInfo.y[0]);
+    }
     if (HAL_GetTick()-t > 100) {
       HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
       t = HAL_GetTick();

@@ -25,6 +25,9 @@ add_link_options(-mfloat-abi=hard -mfpu=fpv5-d16)
 add_compile_options(-mcpu=cortex-m7 -mthumb -mthumb-interwork)
 add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
 
+# uncomment to mitigate c++17 absolute addresses warnings
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-register")
+
 # Enable assembler files preprocessing
 add_compile_options($<$<COMPILE_LANGUAGE:ASM>:-x$<SEMICOLON>assembler-with-cpp>)
 
@@ -52,58 +55,27 @@ add_definitions(-DDEBUG -DUSE_PWR_LDO_SUPPLY -DUSE_HAL_DRIVER -DSTM32H743xx -DSY
 
 set(EXT_DIR ${CMAKE_SOURCE_DIR}/external)
 
-# --- external/TinyUSB ---
-set(TINYUSB_DIR ${EXT_DIR}/TinyUSB)
+# --- external lvgl ---
+set(LVGL_DIR ${EXT_DIR}/lvgl)
+file(GLOB_RECURSE LVGL_SOURCES "${LVGL_DIR}/src/*.c")
+
+# --- external 源文件 (由 CubeMX 脚本管理) ---
 set(EXT_SOURCES
-    ${TINYUSB_DIR}/src/tusb.c
-    ${TINYUSB_DIR}/src/common/tusb_fifo.c
-    ${TINYUSB_DIR}/src/device/usbd.c
-    ${TINYUSB_DIR}/src/device/usbd_control.c
-    ${TINYUSB_DIR}/src/class/vendor/vendor_device.c
-    ${TINYUSB_DIR}/src/class/msc/msc_device.c
-    ${TINYUSB_DIR}/src/portable/synopsys/dwc2/dcd_dwc2.c
-    ${TINYUSB_DIR}/src/portable/synopsys/dwc2/dwc2_common.c
-    ${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
+    # TinyUSB: ${EXT_DIR}/TinyUSB/src/*.c
+    # tlsf:    ${EXT_DIR}/tlsf/*.c
+    # fatfs:   ${EXT_DIR}/fatfs/*.c
+    # FreeRTOS:${EXT_DIR}/FreeRtos/*.c
+    ${LVGL_SOURCES}
 )
 
 set(EXT_INCLUDES
-    ${TINYUSB_DIR}/src
-    ${TINYUSB_DIR}/hw
+    ${EXT_DIR}/TinyUSB/src
+    ${EXT_DIR}/TinyUSB/hw
+    ${EXT_DIR}/tlsf
+    ${EXT_DIR}/fatfs
+    ${EXT_DIR}/FreeRtos/include
+    ${EXT_DIR}/lvgl
 )
-
-# --- external/tlsf ---
-set(TLSF_DIR ${EXT_DIR}/tlsf)
-list(APPEND EXT_SOURCES ${TLSF_DIR}/tlsf.c)
-list(APPEND EXT_INCLUDES ${TLSF_DIR})
-
-# --- external/fatfs ---
-set(FATFS_DIR ${EXT_DIR}/fatfs)
-list(APPEND EXT_SOURCES
-    ${FATFS_DIR}/ff.c
-    ${FATFS_DIR}/ffsystem.c
-    ${FATFS_DIR}/ffunicode.c
-    ${FATFS_DIR}/diskio.c
-)
-list(APPEND EXT_INCLUDES ${FATFS_DIR})
-
-# --- external/FreeRTOS ---
-set(FREERTOS_DIR ${EXT_DIR}/FreeRtos)
-list(APPEND EXT_SOURCES
-    ${FREERTOS_DIR}/tasks.c
-    ${FREERTOS_DIR}/queue.c
-    ${FREERTOS_DIR}/list.c
-    ${FREERTOS_DIR}/timers.c
-    ${FREERTOS_DIR}/event_groups.c
-    ${FREERTOS_DIR}/stream_buffer.c
-    ${FREERTOS_DIR}/portable/MemMang/heap_3.c
-)
-list(APPEND EXT_INCLUDES ${FREERTOS_DIR}/include)
-
-# --- external/lvgl ---
-set(LVGL_DIR ${EXT_DIR}/lvgl)
-file(GLOB_RECURSE LVGL_SOURCES "${LVGL_DIR}/src/*.c")
-list(APPEND EXT_SOURCES ${LVGL_SOURCES})
-list(APPEND EXT_INCLUDES ${LVGL_DIR})
 
 # --- port 模块 (遍历 port/*/module.cmake) ---
 file(GLOB PORT_MODULE_FILES ${CMAKE_SOURCE_DIR}/port/*/module.cmake)
@@ -111,9 +83,6 @@ foreach(MOD_FILE ${PORT_MODULE_FILES})
     include(${MOD_FILE})
     list(APPEND PORT_SOURCES ${MODULE_SOURCES})
     list(APPEND PORT_INCLUDES ${MODULE_INCLUDES})
-    get_filename_component(MOD_DIR ${MOD_FILE} DIRECTORY)
-    get_filename_component(MOD_NAME ${MOD_DIR} NAME)
-    message(STATUS "port/${MOD_NAME}: ${MODULE_SOURCES}")
 endforeach()
 list(APPEND PORT_INCLUDES ${CMAKE_SOURCE_DIR})  # 支持 #include "port/config.h"
 
@@ -137,8 +106,6 @@ add_library(platform STATIC
 
 target_include_directories(platform PUBLIC
     ${EXT_INCLUDES}
-    ${CMAKE_SOURCE_DIR}/port/tinyusb_port/include
-    ${CMAKE_SOURCE_DIR}/port/fatfs_port/include
     ${PORT_INCLUDES}
     ${MW_INCLUDES}
 )
@@ -154,14 +121,6 @@ target_link_options(platform PUBLIC
     -Wl,--wrap=free
     -Wl,--wrap=realloc
     -Wl,--wrap=calloc
-)
-
-# 特殊源文件属性
-set_source_files_properties(${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
-    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED"
-)
-set_source_files_properties(${CMAKE_SOURCE_DIR}/port/freertos_port/port.c
-    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DPENDSV_HANDLER_PROVIDED -DSVC_HANDLER_PROVIDED"
 )
 
 # 第三方库抑制警告
