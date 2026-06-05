@@ -1,10 +1,9 @@
 /**
   * @file    lv_port.c
-  * @brief   LVGL v9 移植 — 使用 LVGL 内置 ST LTDC 驱动
+  * @brief   LVGL v9 移植 (ST LTDC 直通模式 + 触摸输入)
   *
-  *          lv_st_ltdc_create_direct() 直通模式 + 双显存,
-  *          驱动内部处理 vsync 影子寄存器交换和同步,
-  *          SDRAM 透写无需手动 Cache 维护.
+  *          显示: lv_st_ltdc_create_direct() 双显存 + vsync 交换,
+  *          输入: GT911 触摸屏注册为 LV_INDEV_TYPE_POINTER.
   *
   *          心跳: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
   *                BSP_FREERTOS_ENABLED=0 → lv_tick_set_cb(lv_port_tick_get)
@@ -86,20 +85,8 @@ void lv_port_init(void)
     lv_tick_set_cb(lv_port_tick_get);
 #endif
 
-    /* 后缓冲初始化 */
-    memset(fb_buf2, 0, FB_SIZE);
-
-    /* 使用 LVGL 内置 ST LTDC 驱动 — DIRECT 直通模式 + 双显存
-     * 驱动自动处理: vsync 影子寄存器交换 / LTDC reload 中断同步 */
-    {
-        extern uint8_t LCD_MEM_ADDRESS[];
-        lv_st_ltdc_create_direct((void *)LCD_MEM_ADDRESS, fb_buf2, 0);
-    }
-
-    /* 注册触摸输入设备 */
-    lv_indev_t * indev = lv_indev_create();
-    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(indev, touch_read_cb);
+    lv_port_disp_init();
+    lv_port_indev_init();
 
     /* 默认主题: 白底黑字 */
     lv_theme_default_init(NULL,
@@ -109,7 +96,30 @@ void lv_port_init(void)
                           &lv_font_montserrat_14);
 
     g_lv_initialized = true;
-    DEBUG_PRINT("LVGL: port init ok, ST LTDC direct dual buf 800x480\r\n");
+    DEBUG_PRINT("lv_port: init ok, ST LTDC direct 800x480 + touch\r\n");
+}
+
+//--------------------------------------------------------------------+
+// 显示初始化
+//--------------------------------------------------------------------+
+
+void lv_port_disp_init(void)
+{
+    memset(fb_buf2, 0, FB_SIZE);
+
+    extern uint8_t LCD_MEM_ADDRESS[];
+    lv_st_ltdc_create_direct((void *)LCD_MEM_ADDRESS, fb_buf2, 0);
+}
+
+//--------------------------------------------------------------------+
+// 触摸输入初始化
+//--------------------------------------------------------------------+
+
+void lv_port_indev_init(void)
+{
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, touch_read_cb);
 }
 
 /**********************
