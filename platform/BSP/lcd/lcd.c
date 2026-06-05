@@ -2,10 +2,8 @@
   * @file    lcd.c
   * @brief   LCD 显示驱动模块 (含 LTDC 控制器初始化)
   *
-  *          显存位于外部 SDRAM (0xC0000000), ARGB8888 单层, 800x480@60fps。
+  *          显存位于外部 SDRAM (0xC0000000), RGB565 单层, 800x480.
   *          DMA2D 硬件加速填充/清屏, 逐像素点阵 ASCII 字体渲染。
-  *
-  *          时序适配反客 FK743M2-IIT6 核心板 (HSE 25MHz → LTDC 33MHz)。
   */
 
 #include "lcd.h"
@@ -15,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/* LTDC 时序参数 (适配 800x480 RGB 屏, 参考反客示例) */
+/* LTDC 时序参数 (适配 800x480 RGB 屏) */
 #define LCD_HSW  1
 #define LCD_VSW  1
 #define LCD_HBP  80
@@ -32,14 +30,14 @@
 // 全局句柄与显存
 //--------------------------------------------------------------------+
 
-uint8_t LCD_MEM_ADDRESS[800 * 480 * 4] MEM_SDRAM_DATA_SECTION;
+uint8_t LCD_MEM_ADDRESS[800 * 480 * 2] MEM_SDRAM_DATA_SECTION;
 
 //--------------------------------------------------------------------+
 // 内部全局变量
 //--------------------------------------------------------------------+
 
-static uint32_t g_color;
-static uint32_t g_back_color;
+static uint16_t g_color;
+static uint16_t g_back_color;
 static lcd_font_t *g_font = &LCD_Font_16x8;
 
 /* 显存基址 */
@@ -58,7 +56,7 @@ static void DMA2D_Fill(void *dst, uint32_t color, uint16_t w, uint16_t h, uint16
 {
     DMA2D->CR     &= ~(DMA2D_CR_START);
     DMA2D->CR      = DMA2D_R2M;
-    DMA2D->OPFCCR  = LTDC_PIXEL_FORMAT_ARGB8888;
+    DMA2D->OPFCCR  = LTDC_PIXEL_FORMAT_RGB565;
     DMA2D->OOR     = off;
     DMA2D->OMAR    = (uint32_t)dst;
     DMA2D->NLR     = ((uint32_t)w << 16) | (uint32_t)h;
@@ -68,17 +66,14 @@ static void DMA2D_Fill(void *dst, uint32_t color, uint16_t w, uint16_t h, uint16
 }
 
 /**
-  * @brief DMA2D 内存到内存拷贝 (含像素格式转换)
-  * @note  RGB565 → ARGB8888, 用于 LVGL flush 回调
+  * @brief DMA2D 内存到内存拷贝 (RGB565 → RGB565, 无格式转换)
   */
 static void DMA2D_Blit(void *dst, const void *src, uint16_t w, uint16_t h,
                         uint16_t dst_off, uint16_t src_off)
 {
-    DMA2D->CR      = DMA2D_M2M_PFC;
+    DMA2D->CR      = DMA2D_M2M;
     DMA2D->FGMAR   = (uint32_t)src;
     DMA2D->OMAR    = (uint32_t)dst;
-    DMA2D->FGPFCCR = LTDC_PIXEL_FORMAT_RGB565;
-    DMA2D->OPFCCR  = LTDC_PIXEL_FORMAT_ARGB8888;
     DMA2D->FGOR    = src_off;
     DMA2D->OOR     = dst_off;
     DMA2D->NLR     = ((uint32_t)w << 16) | (uint32_t)h;
@@ -90,10 +85,6 @@ static void DMA2D_Blit(void *dst, const void *src, uint16_t w, uint16_t h,
 // 初始化
 //--------------------------------------------------------------------+
 
-/**
-  * @brief LCD 模块初始化
-  * @note  配置 PLL3 → LTDC 33MHz, 初始化 LTDC 外设/DMA2D/背光
-  */
 void lcd_init(void)
 {
     LTDC_LayerCfgTypeDef pLayerCfg = {0};
@@ -135,7 +126,7 @@ void lcd_init(void)
     pLayerCfg.WindowX1 = 800;
     pLayerCfg.WindowY0 = 0;
     pLayerCfg.WindowY1 = 480;
-    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
+    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
     pLayerCfg.Alpha = 255;
     pLayerCfg.Alpha0 = 0;
     pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
@@ -150,8 +141,6 @@ void lcd_init(void)
     {
         Error_Handler();
     }
-    /* ARGB8888 需要抖动优化 */
-    HAL_LTDC_EnableDither(&hltdc);
 
     /* 初始化绘图上下文 */
     g_color      = LCD_WHITE;
@@ -160,22 +149,18 @@ void lcd_init(void)
 
     lcd_clear();
     LCD_BL_ON();
-
-    /* USER CODE BEGIN LCD_Init 1 */
-
-    /* USER CODE END LCD_Init 1 */
 }
 
 //--------------------------------------------------------------------+
 // 颜色设置
 //--------------------------------------------------------------------+
 
-void lcd_set_color(uint32_t color)
+void lcd_set_color(uint16_t color)
 {
     g_color = color;
 }
 
-void lcd_set_back_color(uint32_t color)
+void lcd_set_back_color(uint16_t color)
 {
     g_back_color = color;
 }
@@ -192,7 +177,7 @@ void lcd_clear(void)
 
 void lcd_clear_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
-    uint32_t addr = FB_BASE + 4 * (LCD_WIDTH * y + x);
+    uint32_t addr = FB_BASE + 2 * (LCD_WIDTH * y + x);
     DMA2D_Fill((void *)addr, g_back_color, w, h, LCD_WIDTH - w);
 }
 
@@ -200,30 +185,23 @@ void lcd_clear_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 // 像素
 //--------------------------------------------------------------------+
 
-void lcd_draw_point(uint16_t x, uint16_t y, uint32_t color)
+void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color)
 {
-    *(__IO uint32_t *)(FB_BASE + 4 * (x + y * LCD_WIDTH)) = color;
+    *(__IO uint16_t *)(FB_BASE + 2 * (x + y * LCD_WIDTH)) = color;
 }
 
-uint32_t lcd_read_point(uint16_t x, uint16_t y)
+uint16_t lcd_read_point(uint16_t x, uint16_t y)
 {
-    return *(__IO uint32_t *)(FB_BASE + 4 * (x + y * LCD_WIDTH));
+    return *(__IO uint16_t *)(FB_BASE + 2 * (x + y * LCD_WIDTH));
 }
 
 //--------------------------------------------------------------------+
-// 区域刷新 (DMA2D 像素格式转换)
+// 区域刷新 (DMA2D)
 //--------------------------------------------------------------------+
 
-/**
-  * @brief 将 RGB565 像素数组写入显存指定区域
-  * @note  DMA2D 硬件转换 RGB565 → ARGB8888, 用于 LVGL flush 回调
-  * @param x,y  目标区域左上角坐标
-  * @param w,h  区域宽高 (像素)
-  * @param data RGB565 像素数组, 每像素 2 字节, 行连续排列
-  */
 void lcd_blit(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t *data)
 {
-    uint32_t addr = FB_BASE + 4 * (LCD_WIDTH * y + x);
+    uint32_t addr = FB_BASE + 2 * (LCD_WIDTH * y + x);
     DMA2D_Blit((void *)addr, data, w, h, LCD_WIDTH - w, 0);
 }
 
@@ -262,7 +240,7 @@ void lcd_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 
 void lcd_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
-    uint32_t addr = FB_BASE + 4 * (LCD_WIDTH * y + x);
+    uint32_t addr = FB_BASE + 2 * (LCD_WIDTH * y + x);
     DMA2D_Fill((void *)addr, g_color, w, h, LCD_WIDTH - w);
 }
 

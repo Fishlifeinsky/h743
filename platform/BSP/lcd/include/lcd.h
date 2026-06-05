@@ -8,30 +8,30 @@
 #define LCD_WIDTH   800
 #define LCD_HEIGHT  480
 
-/* ARGB8888 颜色 (0xAARRGGBB) */
-#define LCD_WHITE       0xFFFFFFFF
-#define LCD_BLACK       0xFF000000
-#define LCD_BLUE        0xFF0000FF
-#define LCD_GREEN       0xFF00FF00
-#define LCD_RED         0xFFFF0000
-#define LCD_CYAN        0xFF00FFFF
-#define LCD_MAGENTA     0xFFFF00FF
-#define LCD_YELLOW      0xFFFFFF00
-#define LCD_GREY        0xFF2C2C2C
-#define LIGHT_BLUE      0xFF8080FF
-#define LIGHT_GREEN     0xFF80FF80
-#define LIGHT_RED       0xFFFF8080
-#define LIGHT_CYAN      0xFF80FFFF
-#define LIGHT_MAGENTA   0xFFFF80FF
-#define LIGHT_YELLOW    0xFFFFFF80
-#define LIGHT_GREY      0xFFA3A3A3
-#define DARK_BLUE       0xFF000080
-#define DARK_GREEN      0xFF008000
-#define DARK_RED        0xFF800000
-#define DARK_CYAN       0xFF008080
-#define DARK_MAGENTA    0xFF800080
-#define DARK_YELLOW     0xFF808000
-#define DARK_GREY       0xFF404040
+/* RGB565 颜色 */
+#define LCD_WHITE       0xFFFF
+#define LCD_BLACK       0x0000
+#define LCD_BLUE        0x001F
+#define LCD_GREEN       0x07E0
+#define LCD_RED         0xF800
+#define LCD_CYAN        0x07FF
+#define LCD_MAGENTA     0xF81F
+#define LCD_YELLOW      0xFFE0
+#define LCD_GREY        0x8410
+#define LIGHT_BLUE      0x8EDC
+#define LIGHT_GREEN     0x97F0
+#define LIGHT_RED       0xFC10
+#define LIGHT_CYAN      0x8FFC
+#define LIGHT_MAGENTA   0xFCDC
+#define LIGHT_YELLOW    0xFFF0
+#define LIGHT_GREY      0xB596
+#define DARK_BLUE       0x0010
+#define DARK_GREEN      0x0400
+#define DARK_RED        0x8000
+#define DARK_CYAN       0x0410
+#define DARK_MAGENTA    0x8010
+#define DARK_YELLOW     0x8400
+#define DARK_GREY       0x4208
 
 /* 背光控制 (使用 main.h 中 CubeMX 生成的引脚宏) */
 #define LCD_BL_ON()   HAL_GPIO_WritePin(LCD_BK_GPIO_Port, LCD_BK_Pin, GPIO_PIN_SET)
@@ -53,10 +53,10 @@ extern lcd_font_t LCD_Font_16x8;
 void lcd_init(void);
 
 /* 颜色设置 */
-void lcd_set_color(uint32_t color);
-void lcd_set_back_color(uint32_t color);
+void lcd_set_color(uint16_t color);
+void lcd_set_back_color(uint16_t color);
 
-/* 区域刷新 (DMA2D RGB565 → ARGB8888, 用于 LVGL) */
+/* 区域刷新 (DMA2D RGB565 → RGB565, 用于 LVGL) */
 void lcd_blit(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t *data);
 
 /* 清屏 (DMA2D) */
@@ -64,8 +64,8 @@ void lcd_clear(void);
 void lcd_clear_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
 /* 像素 */
-void lcd_draw_point(uint16_t x, uint16_t y, uint32_t color);
-uint32_t lcd_read_point(uint16_t x, uint16_t y);
+void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color);
+uint16_t lcd_read_point(uint16_t x, uint16_t y);
 
 /* 2D 绘图 */
 void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);

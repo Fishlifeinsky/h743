@@ -31,7 +31,7 @@
  *********************/
 #define MY_DISP_HOR_RES  800
 #define MY_DISP_VER_RES  480
-#define FB_SIZE          (MY_DISP_HOR_RES * MY_DISP_VER_RES * 4)
+#define FB_SIZE          (MY_DISP_HOR_RES * MY_DISP_VER_RES * 2)
 
 /**********************
  *  STATIC VARIABLES
