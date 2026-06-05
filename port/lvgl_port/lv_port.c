@@ -119,10 +119,9 @@ void lv_port_init(void)
 static void touch_read_cb(lv_indev_t * indev, lv_indev_data_t * data)
 {
     (void)indev;
-    if (g_touch_data.flag) {
-        data->state   = LV_INDEV_STATE_PRESSED;
-        data->point.x = g_touch_data.x[0];
-        data->point.y = g_touch_data.y[0];
+    if (touch_is_touch()) {
+        data->state = LV_INDEV_STATE_PRESSED;
+        touch_read_xy(0, &data->point.x, &data->point.y);
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
     }

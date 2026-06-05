@@ -201,9 +201,11 @@ static void touch_task(void *pvParameters)
     (void)pvParameters;
     for (;;) {
         touch_scan();
-        if (g_touch_data.flag) {
+        if (touch_is_touch()) {
+            uint16_t x, y;
+            touch_read_xy(0, &x, &y);
             DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
-                        g_touch_data.num, g_touch_data.x[0], g_touch_data.y[0]);
+                        touch_get_num(), x, y);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -351,9 +353,11 @@ int main(void)
   {
     lv_timer_handler();
     touch_scan();
-    if (g_touch_data.flag) {
+    if (touch_is_touch()) {
+      uint16_t x, y;
+      touch_read_xy(0, &x, &y);
       DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
-                  g_touch_data.num, g_touch_data.x[0], g_touch_data.y[0]);
+                  touch_get_num(), x, y);
     }
     if (HAL_GetTick()-t > 100) {
       HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);

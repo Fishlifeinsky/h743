@@ -6,8 +6,22 @@
 #include "touch.h"
 #include "port/config.h"
 
-volatile touch_data_t g_touch_data;
-static volatile uint8_t g_modify_flag = 0;   /* 硬件版本适配标志 */
+#if BSP_FREERTOS_ENABLED
+#include "FreeRTOS.h"
+#include "semphr.h"
+#endif
+
+//--------------------------------------------------------------------+
+// 内部全局变量
+//--------------------------------------------------------------------+
+
+static touch_data_t g_touch_data;
+static volatile uint8_t g_modify_flag = 0;
+
+#if BSP_FREERTOS_ENABLED
+static SemaphoreHandle_t g_mutex;
+static StaticSemaphore_t g_mutex_buf;
+#endif
 
 //--------------------------------------------------------------------+
 // 静态函数
@@ -21,7 +35,19 @@ static uint8_t gt9xx_read_reg(uint16_t addr, uint8_t cnt, uint8_t *value);
 static void panel_recognition(void);
 
 //--------------------------------------------------------------------+
-// 复位 GT911 (将 I2C 地址设为 0xBA/0xBB)
+// 互斥锁
+//--------------------------------------------------------------------+
+
+#if BSP_FREERTOS_ENABLED
+#define TOUCH_LOCK()   do { if (g_mutex) xSemaphoreTake(g_mutex, portMAX_DELAY); } while(0)
+#define TOUCH_UNLOCK() do { if (g_mutex) xSemaphoreGive(g_mutex); } while(0)
+#else
+#define TOUCH_LOCK()   ((void)0)
+#define TOUCH_UNLOCK() ((void)0)
+#endif
+
+//--------------------------------------------------------------------+
+// 复位 GT911
 //--------------------------------------------------------------------+
 
 static void gt9xx_reset(void)
@@ -97,16 +123,16 @@ static uint8_t gt9xx_read_reg(uint16_t addr, uint8_t cnt, uint8_t *value)
 
     for (uint8_t i = 0; i < cnt; i++) {
         if (i == (cnt - 1))
-            value[i] = touch_iic_read_byte(0);   /* 最后一字节发 NOACK */
+            value[i] = touch_iic_read_byte(0);
         else
-            value[i] = touch_iic_read_byte(1);   /* 其他字节发 ACK */
+            value[i] = touch_iic_read_byte(1);
     }
     touch_iic_stop();
     return SUCCESS;
 }
 
 //--------------------------------------------------------------------+
-// 硬件版本识别 (兼容旧版 1024x600 触摸屏)
+// 硬件版本识别
 //--------------------------------------------------------------------+
 
 static void panel_recognition(void)
@@ -127,7 +153,6 @@ static void panel_recognition(void)
 
     touch_iic_delay(4000);
 
-    /* 旧版硬件 RST + INT 未连接至核心板, 检测引脚电平判断版本 */
     if ((HAL_GPIO_ReadPin(TOUCH_IIC_RST_PORT, TOUCH_IIC_RST_PIN) != 1) &&
         (HAL_GPIO_ReadPin(TOUCH_IIC_INT_PORT, TOUCH_IIC_INT_PIN) != 1)) {
         g_modify_flag = 1;
@@ -140,6 +165,10 @@ static void panel_recognition(void)
 
 uint8_t touch_init(void)
 {
+#if BSP_FREERTOS_ENABLED
+    g_mutex = xSemaphoreCreateMutexStatic(&g_mutex_buf);
+#endif
+
     uint8_t info[11];
     uint8_t cfg_version = 0;
 
@@ -162,7 +191,6 @@ uint8_t touch_init(void)
                 (info[9] << 8) + info[8],
                 cfg_version);
 
-    /* 旧版触摸屏坐标缩放 1024x600 → 800x480 */
     uint16_t res_x = (info[7] << 8) + info[6];
     g_modify_flag = (res_x == 1024) ? 1 : 0;
 
@@ -171,30 +199,58 @@ uint8_t touch_init(void)
 
 void touch_scan(void)
 {
+    touch_data_t tmp;
     uint8_t buf[2 + 8 * TOUCH_MAX_POINTS];
 
     gt9xx_read_reg(TOUCH_GT9XX_READ_ADDR, 2 + 8 * TOUCH_MAX_POINTS, buf);
     gt9xx_write_data(TOUCH_GT9XX_READ_ADDR, 0);
 
-    g_touch_data.num = buf[0] & 0x0F;
+    tmp.num = buf[0] & 0x0F;
 
-    if (g_touch_data.num >= 1 && g_touch_data.num <= 5) {
-        for (uint8_t i = 0; i < g_touch_data.num; i++) {
-            g_touch_data.y[i] = (buf[5 + 8 * i] << 8) | buf[4 + 8 * i];
-            g_touch_data.x[i] = (buf[3 + 8 * i] << 8) | buf[2 + 8 * i];
+    if (tmp.num >= 1 && tmp.num <= 5) {
+        for (uint8_t i = 0; i < tmp.num; i++) {
+            tmp.y[i] = (buf[5 + 8 * i] << 8) | buf[4 + 8 * i];
+            tmp.x[i] = (buf[3 + 8 * i] << 8) | buf[2 + 8 * i];
 
             if (g_modify_flag) {
-                g_touch_data.y[i] = (uint16_t)(g_touch_data.y[i] * 0.80f);
-                g_touch_data.x[i] = (uint16_t)(g_touch_data.x[i] * 0.78f);
+                tmp.y[i] = (uint16_t)(tmp.y[i] * 0.80f);
+                tmp.x[i] = (uint16_t)(tmp.x[i] * 0.78f);
             }
         }
-        g_touch_data.flag = 1;
+        tmp.flag = 1;
     } else {
-        g_touch_data.flag = 0;
+        tmp.flag = 0;
     }
+
+    TOUCH_LOCK();
+    g_touch_data = tmp;
+    TOUCH_UNLOCK();
 }
 
 bool touch_is_touch(void)
 {
-    return g_touch_data.flag != 0;
+    bool ret;
+    TOUCH_LOCK();
+    ret = (g_touch_data.flag != 0);
+    TOUCH_UNLOCK();
+    return ret;
+}
+
+uint8_t touch_get_num(void)
+{
+    uint8_t num;
+    TOUCH_LOCK();
+    num = g_touch_data.num;
+    TOUCH_UNLOCK();
+    return num;
+}
+
+void touch_read_xy(uint8_t idx, uint16_t *x, uint16_t *y)
+{
+    if (idx >= TOUCH_MAX_POINTS) return;
+
+    TOUCH_LOCK();
+    *x = g_touch_data.x[idx];
+    *y = g_touch_data.y[idx];
+    TOUCH_UNLOCK();
 }

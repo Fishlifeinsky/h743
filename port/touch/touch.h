@@ -20,15 +20,6 @@
 #define TOUCH_GT9XX_READ_ADDR  0x814E
 #define TOUCH_GT9XX_ID_ADDR    0x8140
 
-typedef struct {
-    uint8_t  flag;
-    uint8_t  num;
-    uint16_t x[TOUCH_MAX_POINTS];
-    uint16_t y[TOUCH_MAX_POINTS];
-} touch_data_t;
-
-extern volatile touch_data_t g_touch_data;
-
 //--------------------------------------------------------------------+
 // 外部接口
 //--------------------------------------------------------------------+
@@ -36,5 +27,7 @@ extern volatile touch_data_t g_touch_data;
 uint8_t touch_init(void);
 void    touch_scan(void);
 bool    touch_is_touch(void);
+uint8_t touch_get_num(void);
+void    touch_read_xy(uint8_t idx, uint16_t *x, uint16_t *y);
 
 #endif
