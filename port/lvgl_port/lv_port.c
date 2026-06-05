@@ -130,8 +130,11 @@ static void touch_read_cb(lv_indev_t * indev, lv_indev_data_t * data)
 {
     (void)indev;
     if (touch_is_touch()) {
-        data->state = LV_INDEV_STATE_PRESSED;
-        touch_read_xy(0, &data->point.x, &data->point.y);
+        uint16_t tx, ty;
+        touch_read_xy(0, &tx, &ty);
+        data->state   = LV_INDEV_STATE_PRESSED;
+        data->point.x = tx;
+        data->point.y = ty;
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
     }
