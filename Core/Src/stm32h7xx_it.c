@@ -22,7 +22,7 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "BSP/config.h"
+#include "port/config.h"
 #include "uart.h"
 /* USER CODE END Includes */
 

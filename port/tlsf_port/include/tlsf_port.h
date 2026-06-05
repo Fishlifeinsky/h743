@@ -1,0 +1,43 @@
+#ifndef BSP_TLSF_PORT_H_
+#define BSP_TLSF_PORT_H_
+
+#include "tlsf.h"
+#include "port/config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//--------------------------------------------------------------------+
+// TLSF 内存池类型
+//--------------------------------------------------------------------+
+typedef enum {
+    TLSF_PORT_SDRAM   = 0,  // 外部 SDRAM (0xC0000000, 32MB)
+    TLSF_PORT_SRAM_D1 = 1,  // 内部 SRAM D1 (0x24000000, 512KB 剩余空间)
+    TLSF_PORT_POOL_COUNT
+} tlsf_port_pool_t;
+
+//--------------------------------------------------------------------+
+// 外部接口
+//--------------------------------------------------------------------+
+
+void  tlsf_port_init(void);
+void  tlsf_port_rtos_init(void);
+void *tlsf_port_malloc(size_t size, tlsf_port_pool_t pool);
+void *tlsf_port_realloc(void *ptr, size_t size);
+void  tlsf_port_free(void *ptr);
+tlsf_t tlsf_port_get(tlsf_port_pool_t pool);
+
+//--------------------------------------------------------------------+
+// 单元测试
+//--------------------------------------------------------------------+
+
+#if USE_BSP_UNIT_TESTING
+void tlsf_port_test(void);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

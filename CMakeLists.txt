@@ -49,7 +49,160 @@ include_directories(Core/Inc Drivers/STM32H7xx_HAL_Driver/Inc Drivers/STM32H7xx_
 
 add_definitions(-DDEBUG -DUSE_PWR_LDO_SUPPLY -DUSE_HAL_DRIVER -DSTM32H743xx -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED)
 
-add_subdirectory(platform)
+#==============================================================================
+# platform 静态库 — external + port + middleware
+#==============================================================================
+
+# --- external/TinyUSB ---
+set(TINYUSB_DIR ${CMAKE_SOURCE_DIR}/external/TinyUSB)
+set(TINYUSB_SOURCES
+    ${TINYUSB_DIR}/src/tusb.c
+    ${TINYUSB_DIR}/src/common/tusb_fifo.c
+    ${TINYUSB_DIR}/src/device/usbd.c
+    ${TINYUSB_DIR}/src/device/usbd_control.c
+    ${TINYUSB_DIR}/src/class/vendor/vendor_device.c
+    ${TINYUSB_DIR}/src/class/msc/msc_device.c
+    ${TINYUSB_DIR}/src/portable/synopsys/dwc2/dcd_dwc2.c
+    ${TINYUSB_DIR}/src/portable/synopsys/dwc2/dwc2_common.c
+    ${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
+)
+
+# --- external/tlsf ---
+set(TLSF_DIR ${CMAKE_SOURCE_DIR}/external/tlsf)
+set(TLSF_SOURCES ${TLSF_DIR}/tlsf.c)
+
+# --- external/fatfs ---
+set(FATFS_DIR ${CMAKE_SOURCE_DIR}/external/fatfs)
+set(FATFS_SOURCES
+    ${FATFS_DIR}/ff.c
+    ${FATFS_DIR}/ffsystem.c
+    ${FATFS_DIR}/ffunicode.c
+    ${FATFS_DIR}/diskio.c
+)
+
+# --- external/FreeRTOS ---
+set(FREERTOS_DIR ${CMAKE_SOURCE_DIR}/external/FreeRtos)
+set(FREERTOS_SOURCES
+    ${FREERTOS_DIR}/tasks.c
+    ${FREERTOS_DIR}/queue.c
+    ${FREERTOS_DIR}/list.c
+    ${FREERTOS_DIR}/timers.c
+    ${FREERTOS_DIR}/event_groups.c
+    ${FREERTOS_DIR}/stream_buffer.c
+    ${FREERTOS_DIR}/portable/MemMang/heap_3.c
+)
+
+# --- external/lvgl ---
+set(LVGL_DIR ${CMAKE_SOURCE_DIR}/external/lvgl)
+file(GLOB_RECURSE LVGL_SOURCES "${LVGL_DIR}/src/*.c")
+
+# --- port 模块 ---
+file(GLOB PORT_MODULES LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/port/*)
+
+set(PORT_SOURCES "")
+set(PORT_INCLUDES "")
+
+foreach(MOD ${PORT_MODULES})
+    if(NOT IS_DIRECTORY ${MOD})
+        continue()
+    endif()
+
+    get_filename_component(MOD_NAME ${MOD} NAME)
+
+    file(GLOB MOD_SOURCES "${MOD}/*.c" "${MOD}/*.cpp" "${MOD}/*.S" "${MOD}/*.s")
+
+    if(EXISTS "${MOD}/include")
+        set(MOD_INCLUDE "${MOD}/include")
+    else()
+        set(MOD_INCLUDE "${MOD}")
+    endif()
+
+    list(APPEND PORT_SOURCES ${MOD_SOURCES})
+    list(APPEND PORT_INCLUDES ${MOD_INCLUDE})
+
+    message(STATUS "port: ${MOD_NAME} -> ${MOD_SOURCES}")
+endforeach()
+
+# 添加根目录以支持 #include "port/config.h"
+list(APPEND PORT_INCLUDES ${CMAKE_SOURCE_DIR})
+
+# --- middleware ---
+set(ELIB_DIR ${CMAKE_SOURCE_DIR}/middleware/elib)
+set(VFS_DIR ${CMAKE_SOURCE_DIR}/middleware/vfs)
+
+add_library(platform STATIC
+    ${TINYUSB_SOURCES}
+    ${TLSF_SOURCES}
+    ${FATFS_SOURCES}
+    ${FREERTOS_SOURCES}
+    ${LVGL_SOURCES}
+    ${PORT_SOURCES}
+    ${ELIB_DIR}/list.c
+    ${VFS_DIR}/vfs.c
+)
+
+target_include_directories(platform PUBLIC
+    # TinyUSB
+    ${TINYUSB_DIR}/src
+    ${TINYUSB_DIR}/hw
+    ${CMAKE_SOURCE_DIR}/port/tinyusb_port/include
+    # tlsf
+    ${TLSF_DIR}
+    # fatfs
+    ${FATFS_DIR}
+    ${CMAKE_SOURCE_DIR}/port/fatfs_port/include
+    # lvgl
+    ${LVGL_DIR}
+    # port
+    ${PORT_INCLUDES}
+    # elib ( "elib/list.h" )
+    ${ELIB_DIR}/..
+    # vfs
+    ${VFS_DIR}
+    ${VFS_DIR}/..
+    # FreeRTOS
+    ${FREERTOS_DIR}/include
+)
+
+target_compile_definitions(platform PUBLIC
+    CFG_TUSB_MCU=OPT_MCU_STM32H7
+    CFG_TUSB_CONFIG_FILE="tusb_config.h"
+    __STM32_VFS__
+)
+
+# 全局 malloc/free 替换为 TLSF (via linker --wrap)
+target_link_options(platform PUBLIC
+    -Wl,--wrap=malloc
+    -Wl,--wrap=free
+    -Wl,--wrap=realloc
+    -Wl,--wrap=calloc
+)
+
+# family.c: suppress warnings, disable handlers provided by CubeMX
+set_source_files_properties(${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
+    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED"
+)
+
+# port.c: suppress warnings, indicate handlers provided by FreeRTOS
+set_source_files_properties(${CMAKE_SOURCE_DIR}/port/freertos_port/port.c
+    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DPENDSV_HANDLER_PROVIDED -DSVC_HANDLER_PROVIDED"
+)
+
+# Suppress warnings on 3rd-party code
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set_source_files_properties(
+        ${TINYUSB_SOURCES}
+        ${TLSF_SOURCES}
+        ${FATFS_SOURCES}
+        ${FREERTOS_SOURCES}
+        ${LVGL_SOURCES}
+        PROPERTIES COMPILE_FLAGS "-w"
+    )
+endif()
+
+#==============================================================================
+# 主程序
+#==============================================================================
 
 file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*")
 

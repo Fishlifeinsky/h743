@@ -315,35 +315,24 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 #if !BSP_FREERTOS_ENABLED
-  // lv_port_init();
-  // lv_tick_set_cb(lv_port_tick_get);
-  //
-  // lv_obj_t *btn = lv_button_create(lv_screen_active());
-  // lv_obj_set_size(btn, 120, 50);
-  // lv_obj_center(btn);
-  // lv_obj_t *label = lv_label_create(btn);
-  // lv_label_set_text(label, "Hello");
-  // lv_obj_center(label);
-  lcd_set_back_color(LCD_WHITE);
-  lcd_set_color(LCD_BLACK);
-  lcd_clear();
+  lv_port_init();
+  lv_tick_set_cb(lv_port_tick_get);
+
+  lv_obj_t *btn = lv_button_create(lv_screen_active());
+  lv_obj_set_size(btn, 120, 50);
+  lv_obj_center(btn);
+  lv_obj_t *label = lv_label_create(btn);
+  lv_label_set_text(label, "Hello");
+  lv_obj_center(label);
 
   uint32_t t = HAL_GetTick();
   while (1)
   {
-    // lv_timer_handler();
-    extern uint8_t LCD_MEM_ADDRESS[];
-    uint16_t *fb = (uint16_t *)LCD_MEM_ADDRESS;
-    for (int y = 400; y < 440; y++) {
-      for (int x = 680; x < 780; x++) {
-        fb[y * 800 + x] = 0x0000;  // 黑色 RGB565
-      }
-    }
+    lv_timer_handler();
     if (HAL_GetTick()-t > 100) {
       HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
       t = HAL_GetTick();
     }
-    HAL_Delay(5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
