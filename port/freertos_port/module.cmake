@@ -1,0 +1,7 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/freertos_port.c
+    ${CMAKE_CURRENT_LIST_DIR}/port.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

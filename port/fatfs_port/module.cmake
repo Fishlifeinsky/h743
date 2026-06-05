@@ -1,0 +1,9 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/fatfs_port.c
+    ${CMAKE_CURRENT_LIST_DIR}/fatfs_port_vfs.c
+    ${CMAKE_CURRENT_LIST_DIR}/fatfs_port_test.c
+    ${CMAKE_CURRENT_LIST_DIR}/fatfs_port_vfs_test.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

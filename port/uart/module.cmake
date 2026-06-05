@@ -1,0 +1,8 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/uart.c
+    ${CMAKE_CURRENT_LIST_DIR}/uart_vfs.c
+    ${CMAKE_CURRENT_LIST_DIR}/uart_test.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

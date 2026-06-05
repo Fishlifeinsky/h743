@@ -1,0 +1,7 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/sdram.c
+    ${CMAKE_CURRENT_LIST_DIR}/sdram_test.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

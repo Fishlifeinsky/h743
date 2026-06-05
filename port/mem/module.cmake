@@ -1,0 +1,7 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/malloc_wrap.c
+    ${CMAKE_CURRENT_LIST_DIR}/mem.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

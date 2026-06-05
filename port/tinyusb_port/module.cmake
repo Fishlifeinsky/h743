@@ -1,0 +1,6 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/tusb_port.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

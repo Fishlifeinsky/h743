@@ -1,0 +1,8 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/lcd.c
+    ${CMAKE_CURRENT_LIST_DIR}/lcd_fonts.c
+    ${CMAKE_CURRENT_LIST_DIR}/lcd_test.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)

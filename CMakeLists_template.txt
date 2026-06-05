@@ -49,7 +49,88 @@ include_directories(${includes})
 
 add_definitions(${defines} -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED)
 
-add_subdirectory(platform)
+#==============================================================================
+# platform 静态库 = external + port + middleware
+#==============================================================================
+
+set(EXT_DIR $${CMAKE_SOURCE_DIR}/external)
+
+# --- external lvgl ---
+set(LVGL_DIR $${EXT_DIR}/lvgl)
+file(GLOB_RECURSE LVGL_SOURCES "$${LVGL_DIR}/src/*.c")
+
+# --- external 源文件 (由 CubeMX 脚本管理) ---
+set(EXT_SOURCES
+    # TinyUSB: $${EXT_DIR}/TinyUSB/src/*.c
+    # tlsf:    $${EXT_DIR}/tlsf/*.c
+    # fatfs:   $${EXT_DIR}/fatfs/*.c
+    # FreeRTOS:$${EXT_DIR}/FreeRtos/*.c
+    $${LVGL_SOURCES}
+)
+
+set(EXT_INCLUDES
+    $${EXT_DIR}/TinyUSB/src
+    $${EXT_DIR}/TinyUSB/hw
+    $${EXT_DIR}/tlsf
+    $${EXT_DIR}/fatfs
+    $${EXT_DIR}/FreeRtos/include
+    $${EXT_DIR}/lvgl
+)
+
+# --- port 模块 (遍历 port/*/module.cmake) ---
+file(GLOB PORT_MODULE_FILES $${CMAKE_SOURCE_DIR}/port/*/module.cmake)
+foreach(MOD_FILE $${PORT_MODULE_FILES})
+    include($${MOD_FILE})
+    list(APPEND PORT_SOURCES $${MODULE_SOURCES})
+    list(APPEND PORT_INCLUDES $${MODULE_INCLUDES})
+endforeach()
+list(APPEND PORT_INCLUDES $${CMAKE_SOURCE_DIR})  # 支持 #include "port/config.h"
+
+# --- middleware 模块 (遍历 middleware/*/module.cmake) ---
+file(GLOB MW_MODULE_FILES $${CMAKE_SOURCE_DIR}/middleware/*/module.cmake)
+foreach(MOD_FILE $${MW_MODULE_FILES})
+    include($${MOD_FILE})
+    list(APPEND MW_SOURCES $${MODULE_SOURCES})
+    list(APPEND MW_INCLUDES $${MODULE_INCLUDES})
+endforeach()
+
+#==============================================================================
+# 构建 platform 库
+#==============================================================================
+
+add_library(platform STATIC
+    $${EXT_SOURCES}
+    $${PORT_SOURCES}
+    $${MW_SOURCES}
+)
+
+target_include_directories(platform PUBLIC
+    $${EXT_INCLUDES}
+    $${PORT_INCLUDES}
+    $${MW_INCLUDES}
+)
+
+target_compile_definitions(platform PUBLIC
+    CFG_TUSB_MCU=OPT_MCU_STM32H7
+    CFG_TUSB_CONFIG_FILE="tusb_config.h"
+    __STM32_VFS__
+)
+
+target_link_options(platform PUBLIC
+    -Wl,--wrap=malloc
+    -Wl,--wrap=free
+    -Wl,--wrap=realloc
+    -Wl,--wrap=calloc
+)
+
+# 第三方库抑制警告
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set_source_files_properties($${EXT_SOURCES} PROPERTIES COMPILE_FLAGS "-w")
+endif()
+
+#==============================================================================
+# 主程序
+#==============================================================================
 
 file(GLOB_RECURSE SOURCES ${sources})
 

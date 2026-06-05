@@ -1,0 +1,7 @@
+set(MODULE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/qspi_w25q64.c
+    ${CMAKE_CURRENT_LIST_DIR}/qspi_w25q64_test.c
+)
+set(MODULE_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
