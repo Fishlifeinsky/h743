@@ -199,12 +199,11 @@ static StaticTask_t touch_task_tcb;
 static void touch_task(void *pvParameters)
 {
     (void)pvParameters;
-    Touch_Init();
     for (;;) {
-        Touch_Scan();
-        if (touchInfo.flag) {
+        touch_scan();
+        if (g_touch_data.flag) {
             DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
-                        touchInfo.num, touchInfo.x[0], touchInfo.y[0]);
+                        g_touch_data.num, g_touch_data.x[0], g_touch_data.y[0]);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -324,6 +323,7 @@ int main(void)
   uart_init();                     // UART RXNE 中断在硬件初始化完成后才开启
   uart_vfs_init();
   lcd_init();
+  touch_init();
 
 #if BSP_FREERTOS_ENABLED
   xTaskCreateStatic(init_task, "init", 1024, NULL, 3,
@@ -346,14 +346,14 @@ int main(void)
   lv_obj_center(label);
 
   uint32_t t = HAL_GetTick();
-  Touch_Init();
+  touch_init();
   while (1)
   {
     lv_timer_handler();
-    Touch_Scan();
-    if (touchInfo.flag) {
+    touch_scan();
+    if (g_touch_data.flag) {
       DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
-                  touchInfo.num, touchInfo.x[0], touchInfo.y[0]);
+                  g_touch_data.num, g_touch_data.x[0], g_touch_data.y[0]);
     }
     if (HAL_GetTick()-t > 100) {
       HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);

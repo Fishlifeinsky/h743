@@ -20,6 +20,7 @@
 #include "stm32h7xx_hal.h"
 #include "src/drivers/display/st_ltdc/lv_st_ltdc.h"
 #include "ltdc.h"
+#include "touch.h"
 
 #if BSP_FREERTOS_ENABLED
 #include "FreeRTOS.h"
@@ -32,6 +33,11 @@
 #define MY_DISP_HOR_RES  800
 #define MY_DISP_VER_RES  480
 #define FB_SIZE          (MY_DISP_HOR_RES * MY_DISP_VER_RES * 2)
+
+/**********************
+ *  STATIC PROTOTYPES
+ **********************/
+static void touch_read_cb(lv_indev_t * indev, lv_indev_data_t * data);
 
 /**********************
  *  STATIC VARIABLES
@@ -90,6 +96,11 @@ void lv_port_init(void)
         lv_st_ltdc_create_direct((void *)LCD_MEM_ADDRESS, fb_buf2, 0);
     }
 
+    /* 注册触摸输入设备 */
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, touch_read_cb);
+
     /* 默认主题: 白底黑字 */
     lv_theme_default_init(NULL,
                           lv_color_make(0xFF, 0xFF, 0xFF),
@@ -99,4 +110,20 @@ void lv_port_init(void)
 
     g_lv_initialized = true;
     DEBUG_PRINT("LVGL: port init ok, ST LTDC direct dual buf 800x480\r\n");
+}
+
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+
+static void touch_read_cb(lv_indev_t * indev, lv_indev_data_t * data)
+{
+    (void)indev;
+    if (g_touch_data.flag) {
+        data->state   = LV_INDEV_STATE_PRESSED;
+        data->point.x = g_touch_data.x[0];
+        data->point.y = g_touch_data.y[0];
+    } else {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
 }
