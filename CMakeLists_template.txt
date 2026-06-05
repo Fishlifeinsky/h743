@@ -55,26 +55,60 @@ add_definitions(${defines} -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVID
 
 set(EXT_DIR $${CMAKE_SOURCE_DIR}/external)
 
-# --- external lvgl ---
+# --- external/lvgl ---
 set(LVGL_DIR $${EXT_DIR}/lvgl)
 file(GLOB_RECURSE LVGL_SOURCES "$${LVGL_DIR}/src/*.c")
 
-# --- external 源文件 (由 CubeMX 脚本管理) ---
 set(EXT_SOURCES
-    # TinyUSB: $${EXT_DIR}/TinyUSB/src/*.c
-    # tlsf:    $${EXT_DIR}/tlsf/*.c
-    # fatfs:   $${EXT_DIR}/fatfs/*.c
-    # FreeRTOS:$${EXT_DIR}/FreeRtos/*.c
     $${LVGL_SOURCES}
 )
 
 set(EXT_INCLUDES
-    $${EXT_DIR}/TinyUSB/src
-    $${EXT_DIR}/TinyUSB/hw
-    $${EXT_DIR}/tlsf
-    $${EXT_DIR}/fatfs
-    $${EXT_DIR}/FreeRtos/include
     $${EXT_DIR}/lvgl
+)
+
+# --- external/TinyUSB ---
+set(TINYUSB_DIR $${EXT_DIR}/TinyUSB)
+list(APPEND EXT_SOURCES
+    $${TINYUSB_DIR}/src/tusb.c
+    $${TINYUSB_DIR}/src/common/tusb_fifo.c
+    $${TINYUSB_DIR}/src/device/usbd.c
+    $${TINYUSB_DIR}/src/device/usbd_control.c
+    $${TINYUSB_DIR}/src/class/vendor/vendor_device.c
+    $${TINYUSB_DIR}/src/class/msc/msc_device.c
+    $${TINYUSB_DIR}/src/portable/synopsys/dwc2/dcd_dwc2.c
+    $${TINYUSB_DIR}/src/portable/synopsys/dwc2/dwc2_common.c
+    $${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
+)
+list(APPEND EXT_INCLUDES $${TINYUSB_DIR}/src $${TINYUSB_DIR}/hw)
+
+# --- external/tlsf ---
+list(APPEND EXT_SOURCES $${EXT_DIR}/tlsf/tlsf.c)
+list(APPEND EXT_INCLUDES $${EXT_DIR}/tlsf)
+
+# --- external/fatfs ---
+list(APPEND EXT_SOURCES
+    $${EXT_DIR}/fatfs/ff.c
+    $${EXT_DIR}/fatfs/ffsystem.c
+    $${EXT_DIR}/fatfs/ffunicode.c
+    $${EXT_DIR}/fatfs/diskio.c
+)
+list(APPEND EXT_INCLUDES $${EXT_DIR}/fatfs)
+
+# --- external/FreeRTOS ---
+list(APPEND EXT_SOURCES
+    $${EXT_DIR}/FreeRtos/tasks.c
+    $${EXT_DIR}/FreeRtos/queue.c
+    $${EXT_DIR}/FreeRtos/list.c
+    $${EXT_DIR}/FreeRtos/timers.c
+    $${EXT_DIR}/FreeRtos/event_groups.c
+    $${EXT_DIR}/FreeRtos/stream_buffer.c
+    $${EXT_DIR}/FreeRtos/portable/MemMang/heap_3.c
+    $${EXT_DIR}/FreeRtos/portable/GCC/ARM_CM7/r0p1/port.c
+)
+list(APPEND EXT_INCLUDES
+    $${EXT_DIR}/FreeRtos/include
+    $${EXT_DIR}/FreeRtos/portable/GCC/ARM_CM7/r0p1
 )
 
 # --- port 模块 (遍历 port/*/module.cmake) ---
@@ -84,7 +118,7 @@ foreach(MOD_FILE $${PORT_MODULE_FILES})
     list(APPEND PORT_SOURCES $${MODULE_SOURCES})
     list(APPEND PORT_INCLUDES $${MODULE_INCLUDES})
 endforeach()
-list(APPEND PORT_INCLUDES $${CMAKE_SOURCE_DIR})  # 支持 #include "port/config.h"
+list(APPEND PORT_INCLUDES $${CMAKE_SOURCE_DIR})
 
 # --- middleware 模块 (遍历 middleware/*/module.cmake) ---
 file(GLOB MW_MODULE_FILES $${CMAKE_SOURCE_DIR}/middleware/*/module.cmake)
@@ -121,6 +155,16 @@ target_link_options(platform PUBLIC
     -Wl,--wrap=free
     -Wl,--wrap=realloc
     -Wl,--wrap=calloc
+)
+
+# family.c: suppress warnings, disable handlers provided by CubeMX
+set_source_files_properties($${TINYUSB_DIR}/hw/bsp/stm32h7/family.c
+    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED"
+)
+
+# port.c: suppress warnings, indicate handlers provided by FreeRTOS
+set_source_files_properties($${CMAKE_SOURCE_DIR}/port/freertos_port/port.c
+    PROPERTIES COMPILE_FLAGS "-Wno-missing-prototypes -DSYSTICK_HANDLER_PROVIDED -DPENDSV_HANDLER_PROVIDED -DSVC_HANDLER_PROVIDED"
 )
 
 # 第三方库抑制警告
