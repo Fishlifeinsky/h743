@@ -1,13 +1,13 @@
 /**
   * @file    lv_port.c
-  * @brief   LVGL v9 移植 — partial render + CPU flush + D-Cache 维护
+  * @brief   LVGL v9 移植 — DIRECT 直通模式 + 双显存 + vsync 交换
   *
-  *          LVGL 渲染到 DTCM 局部缓存 (零等待, 非缓存),
-  *          flush 回调 CPU 逐行拷贝到 SDRAM 显存,
-  *          每行拷贝后 CleanInvalidate D-Cache 使 LTDC 可见.
+  *          LVGL 直接渲染到 SDRAM 帧缓冲 (LV_DISPLAY_RENDER_MODE_DIRECT),
+  *          两块 1.5MB 显存交替使用, LTDC vsync 影子寄存器交换前后缓冲.
+  *          SDRAM MPU 配置为透写 (Write-Through), 无需手动 Cache 维护.
   *
   *          心跳: BSP_FREERTOS_ENABLED=1 → FreeRTOS tick hook → lv_tick_inc()
-  *                BSP_FREERTOS_ENABLED=0 → HAL_GetTick() → lv_port_tick_get()
+  *                BSP_FREERTOS_ENABLED=0 → lv_tick_set_cb(lv_port_tick_get)
   */
 
 /*********************
@@ -16,9 +16,9 @@
 #include "lv_port.h"
 #include "lvgl.h"
 #include <string.h>
-#include "BSP/config.h"
 #include "mem.h"
 #include "stm32h7xx_hal.h"
+#include "ltdc.h"
 
 #if BSP_FREERTOS_ENABLED
 #include "FreeRTOS.h"
@@ -30,7 +30,7 @@
  *********************/
 #define MY_DISP_HOR_RES  800
 #define MY_DISP_VER_RES  480
-#define BUF_ROWS         40
+#define FB_SIZE          (MY_DISP_HOR_RES * MY_DISP_VER_RES * 4)
 
 /**********************
  *  STATIC PROTOTYPES
@@ -42,9 +42,9 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
  **********************/
 static bool g_lv_initialized = false;
 
-/* DTCM 渲染缓存: 128KB, 零等待, 不经 D-Cache */
-MEM_SRAM_DTCM_SECTION
-static uint8_t disp_buf_1[MY_DISP_HOR_RES * BUF_ROWS * 4];
+/* 第二帧缓冲 (第一帧缓冲复用 lcd.c 的 LCD_MEM_ADDRESS) */
+MEM_SDRAM_DATA_SECTION
+static uint8_t fb_buf2[FB_SIZE];
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -84,24 +84,21 @@ void lv_port_init(void)
     lv_tick_set_cb(lv_port_tick_get);
 #endif
 
-    /* lcd_clear() 用 DMA2D 填充 SDRAM 为黑色, 绕过了 CPU D-Cache.
-     * 必须失效 Cache 以丢弃可能存在的脏数据, 确保后续 CPU 写入
-     * 读到正确的 SDRAM 内容 (而非过时的 Cache 行). */
-    {
-        extern uint8_t LCD_MEM_ADDRESS[];
-        SCB_InvalidateDCache_by_Addr((uint32_t *)LCD_MEM_ADDRESS,
-                                      (int32_t)(MY_DISP_HOR_RES * MY_DISP_VER_RES * 4));
-    }
-
-    /* 创建显示 — partial render: DTCM 缓存 → CPU 拷贝 → SDRAM 显存 */
+    /* DIRECT 模式 + 双显存: LVGL 直接渲染到 SDRAM 帧缓冲 */
     lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_ARGB8888);
     lv_display_set_flush_cb(disp, disp_flush);
 
-    lv_display_set_buffers(disp,
-                           disp_buf_1, NULL,
-                           sizeof(disp_buf_1),
-                           LV_DISPLAY_RENDER_MODE_PARTIAL);
+    {
+        extern uint8_t LCD_MEM_ADDRESS[];
+        lv_display_set_buffers(disp,
+                               (void *)LCD_MEM_ADDRESS, fb_buf2,
+                               FB_SIZE,
+                               LV_DISPLAY_RENDER_MODE_DIRECT);
+
+        /* 后缓冲初始化为黑色, 与 lcd_clear 保持一致 */
+        memset(fb_buf2, 0, FB_SIZE);
+    }
 
     /* 默认主题: 白底黑字 */
     lv_theme_default_init(NULL,
@@ -111,31 +108,27 @@ void lv_port_init(void)
                           &lv_font_montserrat_14);
 
     g_lv_initialized = true;
-    DEBUG_PRINT("LVGL: port init ok, CPU flush 800x480 ARGB8888, DTCM buf %d rows\r\n",
-                BUF_ROWS);
+    DEBUG_PRINT("LVGL: port init ok, DIRECT dual buf 800x480 ARGB8888 WT\r\n");
 }
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
 
-/* 将 px_map 逐行 CPU 拷贝到 SDRAM 显存, 每行清刷 D-Cache */
+/* DIRECT 模式 flush: 最后一帧时交换前后缓冲 (LTDC vsync 影子寄存器) */
 static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
-    extern uint8_t LCD_MEM_ADDRESS[];
-    uint32_t fb_w = MY_DISP_HOR_RES;
-    uint32_t w    = lv_area_get_width(area);
-    uint32_t h    = lv_area_get_height(area);
-    uint32_t line = w * 4; /* ARGB8888 */
+    /* 透写模式下 CPU 写 SDRAM 同步更新物理内存, 无需 Cache 维护 */
 
-    for (uint32_t y = 0; y < h; y++) {
-        uint32_t * dst = (uint32_t *)&LCD_MEM_ADDRESS[((area->y1 + y) * fb_w + area->x1) * 4];
-        uint32_t * src = (uint32_t *)(px_map + y * line);
-        for (uint32_t x = 0; x < w; x++) {
-            dst[x] = src[x];
-        }
-        /* 将脏 cache line 写回 SDRAM 并失效, LTDC 才能读到最新数据 */
-        SCB_CleanInvalidateDCache_by_Addr(dst, (int32_t)(w * 4));
+    if (lv_display_flush_is_last(disp)) {
+        /* px_map 在某帧缓冲内, 判断属于 buf1(LCD_MEM_ADDRESS) 还是 buf2(fb_buf2) */
+        extern uint8_t LCD_MEM_ADDRESS[];
+        void *rendered = (px_map >= fb_buf2 && px_map < fb_buf2 + FB_SIZE)
+                         ? (void *)fb_buf2 : (void *)LCD_MEM_ADDRESS;
+
+        extern LTDC_HandleTypeDef hltdc;
+        HAL_LTDC_SetAddress(&hltdc, (uint32_t)rendered, 0);
+        __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&hltdc);
     }
 
     lv_display_flush_ready(disp);
