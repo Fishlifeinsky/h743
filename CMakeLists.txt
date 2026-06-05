@@ -104,7 +104,6 @@ list(APPEND EXT_SOURCES
     ${EXT_DIR}/FreeRtos/event_groups.c
     ${EXT_DIR}/FreeRtos/stream_buffer.c
     ${EXT_DIR}/FreeRtos/portable/MemMang/heap_3.c
-    ${EXT_DIR}/FreeRtos/portable/GCC/ARM_CM7/r0p1/port.c
 )
 list(APPEND EXT_INCLUDES
     ${EXT_DIR}/FreeRtos/include
