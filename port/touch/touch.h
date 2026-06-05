@@ -25,6 +25,7 @@
 //--------------------------------------------------------------------+
 
 uint8_t touch_init(void);
+void    touch_rtos_init(void);
 void    touch_scan(void);
 bool    touch_is_touch(void);
 uint8_t touch_get_num(void);

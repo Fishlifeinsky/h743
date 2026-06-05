@@ -163,12 +163,15 @@ static void panel_recognition(void)
 // 外部接口
 //--------------------------------------------------------------------+
 
-uint8_t touch_init(void)
+void touch_rtos_init(void)
 {
 #if BSP_FREERTOS_ENABLED
     g_mutex = xSemaphoreCreateMutexStatic(&g_mutex_buf);
 #endif
+}
 
+uint8_t touch_init(void)
+{
     uint8_t info[11];
     uint8_t cfg_version = 0;
 

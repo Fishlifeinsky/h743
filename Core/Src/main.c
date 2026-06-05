@@ -221,6 +221,7 @@ static void init_task(void *pvParameters)
     tlsf_port_rtos_init();
     sd_rtos_init();
     uart_rtos_init();
+    touch_rtos_init();
 
     xTaskCreateStatic(led_task, "led", 128, NULL, 1,
                        led_task_stack, &led_task_tcb);
