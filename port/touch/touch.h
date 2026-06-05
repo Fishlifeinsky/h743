@@ -20,6 +20,13 @@
 #define TOUCH_GT9XX_READ_ADDR  0x814E
 #define TOUCH_GT9XX_ID_ADDR    0x8140
 
+typedef struct {
+    uint8_t  flag;
+    uint8_t  num;
+    uint16_t x[TOUCH_MAX_POINTS];
+    uint16_t y[TOUCH_MAX_POINTS];
+} touch_data_t;
+
 //--------------------------------------------------------------------+
 // 外部接口
 //--------------------------------------------------------------------+
