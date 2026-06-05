@@ -1,5 +1,5 @@
 /**
-  * @file    touch_800x480.h
+  * @file    touch.h
   * @brief   GT911 触摸控制器驱动 (800x480 RGB LCD)
   *
   *          I2C 地址: 0xBA(写) / 0xBB(读)

@@ -1,9 +1,9 @@
 /**
-  * @file    touch_800x480.c
+  * @file    touch.c
   * @brief   GT911 触摸控制器驱动 (800x480 RGB LCD)
   */
 
-#include "touch_800x480.h"
+#include "touch.h"
 #include "port/config.h"
 
 volatile TouchStructure touchInfo;

@@ -55,7 +55,7 @@
 #include "lcd.h"
 #include "lv_port.h"
 #include "lvgl.h"
-#include "touch_800x480.h"
+#include "touch.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -193,8 +193,25 @@ static void lvgl_task(void *pvParameters)
   };
 }
 
+static StackType_t  touch_task_stack[256];
+static StaticTask_t touch_task_tcb;
+// 触摸扫描任务 (10ms 周期, FreeRTOS)
+static void touch_task(void *pvParameters)
+{
+    (void)pvParameters;
+    Touch_Init();
+    for (;;) {
+        Touch_Scan();
+        if (touchInfo.flag) {
+            DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
+                        touchInfo.num, touchInfo.x[0], touchInfo.y[0]);
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
 static StackType_t  init_task_stack[1024];
-static StaticTask_t init_task_tcb;\
+static StaticTask_t init_task_tcb;
 static char buff[64];
 // 初始化任务: RTOS资源/LCD测试/UART回传+时间戳 (FreeRTOS)
 static void init_task(void *pvParameters)
@@ -210,6 +227,8 @@ static void init_task(void *pvParameters)
                        usb_task_stack, &usb_task_tcb);
     xTaskCreateStatic(lvgl_task, "lvgl", 4096, NULL, 4,
                        lvgl_task_stack, &lvgl_task_tcb);
+    xTaskCreateStatic(touch_task, "touch", 256, NULL, 1,
+                       touch_task_stack, &touch_task_tcb);
 
     int uart = open("/dev/uart/COM0", O_RDWR);
     if (uart == -1) {
