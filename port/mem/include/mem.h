@@ -97,12 +97,11 @@ extern uint8_t __itcm_end__;
 extern uint8_t __itcm_load__;
 
 //--------------------------------------------------------------------+
-// SDRAM: 外部 SDRAM 执行代码 (0xC0000000, 32MB)
-//   FLASH 存放，启动时由 mem_sdram_load() 搬运
-//   .sdram_code 之后剩余空间供 TLSF 管理
+// SDRAM: 外部 SDRAM (0xC0000000, 16MB)
+//   .sdram_code + .sdram_data 之后剩余空间供 TLSF 管理
 //--------------------------------------------------------------------+
 #define MEM_SDRAM_START       ((uint32_t)0xC0000000)
-#define MEM_SDRAM_TOTAL_SIZE  (32 * 1024 * 1024)
+#define MEM_SDRAM_TOTAL_SIZE  (16 * 1024 * 1024)
 
 extern uint8_t __sdram_code_start__;
 extern uint8_t __sdram_code_end__;

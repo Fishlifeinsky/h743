@@ -52,7 +52,7 @@ MEMORY
   BKPRAM (xrw)   : ORIGIN = 0x38800000, LENGTH = 4K
 
   EX_FLASH(rx)   : ORIGIN = 0x90000000, LENGTH = 8M
-  SDRAM (xrw)    : ORIGIN = 0xC0000000, LENGTH = 32M
+  SDRAM (xrw)    : ORIGIN = 0xC0000000, LENGTH = 16M
 }
 
 /* Define output sections */
