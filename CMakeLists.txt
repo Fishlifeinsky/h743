@@ -103,7 +103,6 @@ list(APPEND EXT_SOURCES
     ${EXT_DIR}/FreeRtos/timers.c
     ${EXT_DIR}/FreeRtos/event_groups.c
     ${EXT_DIR}/FreeRtos/stream_buffer.c
-    ${EXT_DIR}/FreeRtos/portable/MemMang/heap_3.c
 )
 list(APPEND EXT_INCLUDES
     ${EXT_DIR}/FreeRtos/include

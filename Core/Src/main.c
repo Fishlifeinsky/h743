@@ -179,13 +179,9 @@ static void lvgl_task(void *pvParameters)
   lv_port_init();
 
   // 简单按钮示例
-  lv_obj_t *btn = lv_button_create(lv_screen_active());
-  lv_obj_set_size(btn, 120, 50);
+  lv_obj_t *btn = lv_slider_create(lv_screen_active());
+  lv_obj_set_size(btn, 600, 50);
   lv_obj_center(btn);
-
-  lv_obj_t *label = lv_label_create(btn);
-  lv_label_set_text(label, "Hello");
-  lv_obj_center(label);
 
   for (;;) {
     lv_timer_handler();
@@ -204,8 +200,6 @@ static void touch_task(void *pvParameters)
         if (touch_is_touch()) {
             uint16_t x, y;
             touch_read_xy(0, &x, &y);
-            DEBUG_PRINT("Touch: %d pts, x0=%d y0=%d\r\n",
-                        touch_get_num(), x, y);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
