@@ -157,11 +157,7 @@ size_t tlsf_port_get_free(tlsf_port_pool_t pool) {
 
 size_t tlsf_port_get_used(tlsf_port_pool_t pool) {
     if (pool >= TLSF_PORT_POOL_COUNT) return 0;
-    size_t used = 0;
-    TLSF_LOCK();
-    used = g_pool_used[pool];
-    TLSF_UNLOCK();
-    return used;
+    return g_pool_used[pool];
 }
 
 const char * tlsf_port_get_name(tlsf_port_pool_t pool) {
