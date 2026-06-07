@@ -36,6 +36,10 @@ size_t tlsf_port_get_total(tlsf_port_pool_t pool);
 size_t tlsf_port_get_free(tlsf_port_pool_t pool);
 size_t tlsf_port_get_used(tlsf_port_pool_t pool);
 const char * tlsf_port_get_name(tlsf_port_pool_t pool);
+void tlsf_port_get_stats(tlsf_port_pool_t pool,
+                         size_t *largest_free,
+                         size_t *free_cnt,
+                         size_t *used_cnt);
 
 //--------------------------------------------------------------------+
 // 单元测试

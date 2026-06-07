@@ -160,6 +160,43 @@ size_t tlsf_port_get_used(tlsf_port_pool_t pool) {
     return g_pool_used[pool];
 }
 
+typedef struct {
+    size_t free_cnt;
+    size_t used_cnt;
+    size_t largest_free;
+} tlsf_port_stats_t;
+
+static void walk_stats(void *ptr, size_t size, int used, void *user)
+{
+    tlsf_port_stats_t *s = (tlsf_port_stats_t *)user;
+    if (used) {
+        s->used_cnt++;
+    } else {
+        s->free_cnt++;
+        if (size > s->largest_free) s->largest_free = size;
+    }
+}
+
+void tlsf_port_get_stats(tlsf_port_pool_t pool,
+                         size_t *largest_free,
+                         size_t *free_cnt,
+                         size_t *used_cnt)
+{
+    if (pool >= TLSF_PORT_POOL_COUNT || !g_tlsf[pool]) {
+        if (largest_free) *largest_free = 0;
+        if (free_cnt)     *free_cnt     = 0;
+        if (used_cnt)     *used_cnt     = 0;
+        return;
+    }
+    tlsf_port_stats_t s = {0};
+    TLSF_LOCK();
+    tlsf_walk_pool(tlsf_get_pool(g_tlsf[pool]), walk_stats, &s);
+    TLSF_UNLOCK();
+    if (largest_free) *largest_free = s.largest_free;
+    if (free_cnt)     *free_cnt     = s.free_cnt;
+    if (used_cnt)     *used_cnt     = s.used_cnt;
+}
+
 const char * tlsf_port_get_name(tlsf_port_pool_t pool) {
     if (pool >= TLSF_PORT_POOL_COUNT) return "?";
     return g_pool_name[pool];
