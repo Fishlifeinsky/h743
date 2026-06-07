@@ -150,18 +150,9 @@ size_t tlsf_port_get_total(tlsf_port_pool_t pool) {
     return g_pool_total[pool];
 }
 
-static void walk_count_free(void *ptr, size_t size, int used, void *user)
-{
-    if (!used) *(size_t *)user += size;
-}
-
 size_t tlsf_port_get_free(tlsf_port_pool_t pool) {
     if (pool >= TLSF_PORT_POOL_COUNT || !g_tlsf[pool]) return 0;
-    size_t free_sz = 0;
-    TLSF_LOCK();
-    tlsf_walk_pool(tlsf_get_pool(g_tlsf[pool]), walk_count_free, &free_sz);
-    TLSF_UNLOCK();
-    return free_sz;
+    return g_pool_total[pool] - g_pool_used[pool];
 }
 
 size_t tlsf_port_get_used(tlsf_port_pool_t pool) {
