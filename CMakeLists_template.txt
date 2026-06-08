@@ -109,6 +109,10 @@ list(APPEND EXT_INCLUDES
     $${EXT_DIR}/FreeRtos/portable/GCC/ARM_CM7/r0p1
 )
 
+# --- external/protobuf-c ---
+list(APPEND EXT_SOURCES $${EXT_DIR}/protobuf-c/protobuf-c.c)
+list(APPEND EXT_INCLUDES $${EXT_DIR} $${EXT_DIR}/protobuf-c)
+
 # --- port 模块 (遍历 port/*/module.cmake) ---
 file(GLOB PORT_MODULE_FILES $${CMAKE_SOURCE_DIR}/port/*/module.cmake)
 foreach(MOD_FILE $${PORT_MODULE_FILES})
