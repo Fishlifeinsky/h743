@@ -97,6 +97,276 @@ void   version_cmd__free_unpacked
   assert(message->base.descriptor == &version_cmd__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   flash_info_cmd__init
+                     (FlashInfoCmd         *message)
+{
+  static const FlashInfoCmd init_value = FLASH_INFO_CMD__INIT;
+  *message = init_value;
+}
+size_t flash_info_cmd__get_packed_size
+                     (const FlashInfoCmd *message)
+{
+  assert(message->base.descriptor == &flash_info_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_info_cmd__pack
+                     (const FlashInfoCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_info_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_info_cmd__pack_to_buffer
+                     (const FlashInfoCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_info_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashInfoCmd *
+       flash_info_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashInfoCmd *)
+     protobuf_c_message_unpack (&flash_info_cmd__descriptor,
+                                allocator, len, data);
+}
+void   flash_info_cmd__free_unpacked
+                     (FlashInfoCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_info_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   buff_info_cmd__init
+                     (BuffInfoCmd         *message)
+{
+  static const BuffInfoCmd init_value = BUFF_INFO_CMD__INIT;
+  *message = init_value;
+}
+size_t buff_info_cmd__get_packed_size
+                     (const BuffInfoCmd *message)
+{
+  assert(message->base.descriptor == &buff_info_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t buff_info_cmd__pack
+                     (const BuffInfoCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &buff_info_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t buff_info_cmd__pack_to_buffer
+                     (const BuffInfoCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &buff_info_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+BuffInfoCmd *
+       buff_info_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (BuffInfoCmd *)
+     protobuf_c_message_unpack (&buff_info_cmd__descriptor,
+                                allocator, len, data);
+}
+void   buff_info_cmd__free_unpacked
+                     (BuffInfoCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &buff_info_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_load_cmd__init
+                     (FlashLoadCmd         *message)
+{
+  static const FlashLoadCmd init_value = FLASH_LOAD_CMD__INIT;
+  *message = init_value;
+}
+size_t flash_load_cmd__get_packed_size
+                     (const FlashLoadCmd *message)
+{
+  assert(message->base.descriptor == &flash_load_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_load_cmd__pack
+                     (const FlashLoadCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_load_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_load_cmd__pack_to_buffer
+                     (const FlashLoadCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_load_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashLoadCmd *
+       flash_load_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashLoadCmd *)
+     protobuf_c_message_unpack (&flash_load_cmd__descriptor,
+                                allocator, len, data);
+}
+void   flash_load_cmd__free_unpacked
+                     (FlashLoadCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_load_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_data_cmd__init
+                     (FlashDataCmd         *message)
+{
+  static const FlashDataCmd init_value = FLASH_DATA_CMD__INIT;
+  *message = init_value;
+}
+size_t flash_data_cmd__get_packed_size
+                     (const FlashDataCmd *message)
+{
+  assert(message->base.descriptor == &flash_data_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_data_cmd__pack
+                     (const FlashDataCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_data_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_data_cmd__pack_to_buffer
+                     (const FlashDataCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_data_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashDataCmd *
+       flash_data_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashDataCmd *)
+     protobuf_c_message_unpack (&flash_data_cmd__descriptor,
+                                allocator, len, data);
+}
+void   flash_data_cmd__free_unpacked
+                     (FlashDataCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_data_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_commit_cmd__init
+                     (FlashCommitCmd         *message)
+{
+  static const FlashCommitCmd init_value = FLASH_COMMIT_CMD__INIT;
+  *message = init_value;
+}
+size_t flash_commit_cmd__get_packed_size
+                     (const FlashCommitCmd *message)
+{
+  assert(message->base.descriptor == &flash_commit_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_commit_cmd__pack
+                     (const FlashCommitCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_commit_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_commit_cmd__pack_to_buffer
+                     (const FlashCommitCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_commit_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashCommitCmd *
+       flash_commit_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashCommitCmd *)
+     protobuf_c_message_unpack (&flash_commit_cmd__descriptor,
+                                allocator, len, data);
+}
+void   flash_commit_cmd__free_unpacked
+                     (FlashCommitCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_commit_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_abort_cmd__init
+                     (FlashAbortCmd         *message)
+{
+  static const FlashAbortCmd init_value = FLASH_ABORT_CMD__INIT;
+  *message = init_value;
+}
+size_t flash_abort_cmd__get_packed_size
+                     (const FlashAbortCmd *message)
+{
+  assert(message->base.descriptor == &flash_abort_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_abort_cmd__pack
+                     (const FlashAbortCmd *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_abort_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_abort_cmd__pack_to_buffer
+                     (const FlashAbortCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_abort_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashAbortCmd *
+       flash_abort_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashAbortCmd *)
+     protobuf_c_message_unpack (&flash_abort_cmd__descriptor,
+                                allocator, len, data);
+}
+void   flash_abort_cmd__free_unpacked
+                     (FlashAbortCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_abort_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   ping_res__init
                      (PingRes         *message)
 {
@@ -185,6 +455,276 @@ void   version_res__free_unpacked
   if(!message)
     return;
   assert(message->base.descriptor == &version_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_info_res__init
+                     (FlashInfoRes         *message)
+{
+  static const FlashInfoRes init_value = FLASH_INFO_RES__INIT;
+  *message = init_value;
+}
+size_t flash_info_res__get_packed_size
+                     (const FlashInfoRes *message)
+{
+  assert(message->base.descriptor == &flash_info_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_info_res__pack
+                     (const FlashInfoRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_info_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_info_res__pack_to_buffer
+                     (const FlashInfoRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_info_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashInfoRes *
+       flash_info_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashInfoRes *)
+     protobuf_c_message_unpack (&flash_info_res__descriptor,
+                                allocator, len, data);
+}
+void   flash_info_res__free_unpacked
+                     (FlashInfoRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_info_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   buff_info_res__init
+                     (BuffInfoRes         *message)
+{
+  static const BuffInfoRes init_value = BUFF_INFO_RES__INIT;
+  *message = init_value;
+}
+size_t buff_info_res__get_packed_size
+                     (const BuffInfoRes *message)
+{
+  assert(message->base.descriptor == &buff_info_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t buff_info_res__pack
+                     (const BuffInfoRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &buff_info_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t buff_info_res__pack_to_buffer
+                     (const BuffInfoRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &buff_info_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+BuffInfoRes *
+       buff_info_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (BuffInfoRes *)
+     protobuf_c_message_unpack (&buff_info_res__descriptor,
+                                allocator, len, data);
+}
+void   buff_info_res__free_unpacked
+                     (BuffInfoRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &buff_info_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_load_res__init
+                     (FlashLoadRes         *message)
+{
+  static const FlashLoadRes init_value = FLASH_LOAD_RES__INIT;
+  *message = init_value;
+}
+size_t flash_load_res__get_packed_size
+                     (const FlashLoadRes *message)
+{
+  assert(message->base.descriptor == &flash_load_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_load_res__pack
+                     (const FlashLoadRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_load_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_load_res__pack_to_buffer
+                     (const FlashLoadRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_load_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashLoadRes *
+       flash_load_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashLoadRes *)
+     protobuf_c_message_unpack (&flash_load_res__descriptor,
+                                allocator, len, data);
+}
+void   flash_load_res__free_unpacked
+                     (FlashLoadRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_load_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_data_res__init
+                     (FlashDataRes         *message)
+{
+  static const FlashDataRes init_value = FLASH_DATA_RES__INIT;
+  *message = init_value;
+}
+size_t flash_data_res__get_packed_size
+                     (const FlashDataRes *message)
+{
+  assert(message->base.descriptor == &flash_data_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_data_res__pack
+                     (const FlashDataRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_data_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_data_res__pack_to_buffer
+                     (const FlashDataRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_data_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashDataRes *
+       flash_data_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashDataRes *)
+     protobuf_c_message_unpack (&flash_data_res__descriptor,
+                                allocator, len, data);
+}
+void   flash_data_res__free_unpacked
+                     (FlashDataRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_data_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_commit_res__init
+                     (FlashCommitRes         *message)
+{
+  static const FlashCommitRes init_value = FLASH_COMMIT_RES__INIT;
+  *message = init_value;
+}
+size_t flash_commit_res__get_packed_size
+                     (const FlashCommitRes *message)
+{
+  assert(message->base.descriptor == &flash_commit_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_commit_res__pack
+                     (const FlashCommitRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_commit_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_commit_res__pack_to_buffer
+                     (const FlashCommitRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_commit_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashCommitRes *
+       flash_commit_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashCommitRes *)
+     protobuf_c_message_unpack (&flash_commit_res__descriptor,
+                                allocator, len, data);
+}
+void   flash_commit_res__free_unpacked
+                     (FlashCommitRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_commit_res__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   flash_abort_res__init
+                     (FlashAbortRes         *message)
+{
+  static const FlashAbortRes init_value = FLASH_ABORT_RES__INIT;
+  *message = init_value;
+}
+size_t flash_abort_res__get_packed_size
+                     (const FlashAbortRes *message)
+{
+  assert(message->base.descriptor == &flash_abort_res__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t flash_abort_res__pack
+                     (const FlashAbortRes *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &flash_abort_res__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t flash_abort_res__pack_to_buffer
+                     (const FlashAbortRes *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &flash_abort_res__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FlashAbortRes *
+       flash_abort_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FlashAbortRes *)
+     protobuf_c_message_unpack (&flash_abort_res__descriptor,
+                                allocator, len, data);
+}
+void   flash_abort_res__free_unpacked
+                     (FlashAbortRes *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &flash_abort_res__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   ctpcmd__init
@@ -313,6 +853,167 @@ const ProtobufCMessageDescriptor version_cmd__descriptor =
   (ProtobufCMessageInit) version_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+#define flash_info_cmd__field_descriptors NULL
+#define flash_info_cmd__field_indices_by_name NULL
+#define flash_info_cmd__number_ranges NULL
+const ProtobufCMessageDescriptor flash_info_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashInfoCmd",
+  "FlashInfoCmd",
+  "FlashInfoCmd",
+  "",
+  sizeof(FlashInfoCmd),
+  0,
+  flash_info_cmd__field_descriptors,
+  flash_info_cmd__field_indices_by_name,
+  0,  flash_info_cmd__number_ranges,
+  (ProtobufCMessageInit) flash_info_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+#define buff_info_cmd__field_descriptors NULL
+#define buff_info_cmd__field_indices_by_name NULL
+#define buff_info_cmd__number_ranges NULL
+const ProtobufCMessageDescriptor buff_info_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "BuffInfoCmd",
+  "BuffInfoCmd",
+  "BuffInfoCmd",
+  "",
+  sizeof(BuffInfoCmd),
+  0,
+  buff_info_cmd__field_descriptors,
+  buff_info_cmd__field_indices_by_name,
+  0,  buff_info_cmd__number_ranges,
+  (ProtobufCMessageInit) buff_info_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_load_cmd__field_descriptors[2] =
+{
+  {
+    "addr",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashLoadCmd, addr),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashLoadCmd, size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_load_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = addr */
+  1,   /* field[1] = size */
+};
+static const ProtobufCIntRange flash_load_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor flash_load_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashLoadCmd",
+  "FlashLoadCmd",
+  "FlashLoadCmd",
+  "",
+  sizeof(FlashLoadCmd),
+  2,
+  flash_load_cmd__field_descriptors,
+  flash_load_cmd__field_indices_by_name,
+  1,  flash_load_cmd__number_ranges,
+  (ProtobufCMessageInit) flash_load_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_data_cmd__field_descriptors[1] =
+{
+  {
+    "data",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    offsetof(FlashDataCmd, data),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_data_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = data */
+};
+static const ProtobufCIntRange flash_data_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor flash_data_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashDataCmd",
+  "FlashDataCmd",
+  "FlashDataCmd",
+  "",
+  sizeof(FlashDataCmd),
+  1,
+  flash_data_cmd__field_descriptors,
+  flash_data_cmd__field_indices_by_name,
+  1,  flash_data_cmd__number_ranges,
+  (ProtobufCMessageInit) flash_data_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+#define flash_commit_cmd__field_descriptors NULL
+#define flash_commit_cmd__field_indices_by_name NULL
+#define flash_commit_cmd__number_ranges NULL
+const ProtobufCMessageDescriptor flash_commit_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashCommitCmd",
+  "FlashCommitCmd",
+  "FlashCommitCmd",
+  "",
+  sizeof(FlashCommitCmd),
+  0,
+  flash_commit_cmd__field_descriptors,
+  flash_commit_cmd__field_indices_by_name,
+  0,  flash_commit_cmd__number_ranges,
+  (ProtobufCMessageInit) flash_commit_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+#define flash_abort_cmd__field_descriptors NULL
+#define flash_abort_cmd__field_indices_by_name NULL
+#define flash_abort_cmd__number_ranges NULL
+const ProtobufCMessageDescriptor flash_abort_cmd__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashAbortCmd",
+  "FlashAbortCmd",
+  "FlashAbortCmd",
+  "",
+  sizeof(FlashAbortCmd),
+  0,
+  flash_abort_cmd__field_descriptors,
+  flash_abort_cmd__field_indices_by_name,
+  0,  flash_abort_cmd__number_ranges,
+  (ProtobufCMessageInit) flash_abort_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCFieldDescriptor ping_res__field_descriptors[1] =
 {
   {
@@ -389,7 +1090,287 @@ const ProtobufCMessageDescriptor version_res__descriptor =
   (ProtobufCMessageInit) version_res__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor ctpcmd__field_descriptors[5] =
+static const ProtobufCFieldDescriptor flash_info_res__field_descriptors[4] =
+{
+  {
+    "present",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(FlashInfoRes, present),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashInfoRes, size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mid",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashInfoRes, mid),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "did",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashInfoRes, did),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_info_res__field_indices_by_name[] = {
+  3,   /* field[3] = did */
+  2,   /* field[2] = mid */
+  0,   /* field[0] = present */
+  1,   /* field[1] = size */
+};
+static const ProtobufCIntRange flash_info_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 4 }
+};
+const ProtobufCMessageDescriptor flash_info_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashInfoRes",
+  "FlashInfoRes",
+  "FlashInfoRes",
+  "",
+  sizeof(FlashInfoRes),
+  4,
+  flash_info_res__field_descriptors,
+  flash_info_res__field_indices_by_name,
+  1,  flash_info_res__number_ranges,
+  (ProtobufCMessageInit) flash_info_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor buff_info_res__field_descriptors[2] =
+{
+  {
+    "rx_size",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(BuffInfoRes, rx_size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tx_size",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(BuffInfoRes, tx_size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned buff_info_res__field_indices_by_name[] = {
+  0,   /* field[0] = rx_size */
+  1,   /* field[1] = tx_size */
+};
+static const ProtobufCIntRange buff_info_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor buff_info_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "BuffInfoRes",
+  "BuffInfoRes",
+  "BuffInfoRes",
+  "",
+  sizeof(BuffInfoRes),
+  2,
+  buff_info_res__field_descriptors,
+  buff_info_res__field_indices_by_name,
+  1,  buff_info_res__number_ranges,
+  (ProtobufCMessageInit) buff_info_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_load_res__field_descriptors[1] =
+{
+  {
+    "ok",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(FlashLoadRes, ok),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_load_res__field_indices_by_name[] = {
+  0,   /* field[0] = ok */
+};
+static const ProtobufCIntRange flash_load_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor flash_load_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashLoadRes",
+  "FlashLoadRes",
+  "FlashLoadRes",
+  "",
+  sizeof(FlashLoadRes),
+  1,
+  flash_load_res__field_descriptors,
+  flash_load_res__field_indices_by_name,
+  1,  flash_load_res__number_ranges,
+  (ProtobufCMessageInit) flash_load_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_data_res__field_descriptors[1] =
+{
+  {
+    "written",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(FlashDataRes, written),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_data_res__field_indices_by_name[] = {
+  0,   /* field[0] = written */
+};
+static const ProtobufCIntRange flash_data_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor flash_data_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashDataRes",
+  "FlashDataRes",
+  "FlashDataRes",
+  "",
+  sizeof(FlashDataRes),
+  1,
+  flash_data_res__field_descriptors,
+  flash_data_res__field_indices_by_name,
+  1,  flash_data_res__number_ranges,
+  (ProtobufCMessageInit) flash_data_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_commit_res__field_descriptors[1] =
+{
+  {
+    "ok",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(FlashCommitRes, ok),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_commit_res__field_indices_by_name[] = {
+  0,   /* field[0] = ok */
+};
+static const ProtobufCIntRange flash_commit_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor flash_commit_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashCommitRes",
+  "FlashCommitRes",
+  "FlashCommitRes",
+  "",
+  sizeof(FlashCommitRes),
+  1,
+  flash_commit_res__field_descriptors,
+  flash_commit_res__field_indices_by_name,
+  1,  flash_commit_res__number_ranges,
+  (ProtobufCMessageInit) flash_commit_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor flash_abort_res__field_descriptors[1] =
+{
+  {
+    "ok",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(FlashAbortRes, ok),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned flash_abort_res__field_indices_by_name[] = {
+  0,   /* field[0] = ok */
+};
+static const ProtobufCIntRange flash_abort_res__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor flash_abort_res__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FlashAbortRes",
+  "FlashAbortRes",
+  "FlashAbortRes",
+  "",
+  sizeof(FlashAbortRes),
+  1,
+  flash_abort_res__field_descriptors,
+  flash_abort_res__field_indices_by_name,
+  1,  flash_abort_res__number_ranges,
+  (ProtobufCMessageInit) flash_abort_res__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor ctpcmd__field_descriptors[11] =
 {
   {
     "id",
@@ -451,19 +1432,98 @@ static const ProtobufCFieldDescriptor ctpcmd__field_descriptors[5] =
     PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "flash_info",
+    12,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, flash_info),
+    &flash_info_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "buff_info",
+    13,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, buff_info),
+    &buff_info_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_load",
+    20,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, flash_load),
+    &flash_load_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_data",
+    21,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, flash_data),
+    &flash_data_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_commit",
+    22,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, flash_commit),
+    &flash_commit_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_abort",
+    23,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPCmd, body_case),
+    offsetof(CTPCmd, flash_abort),
+    &flash_abort_cmd__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned ctpcmd__field_indices_by_name[] = {
+  6,   /* field[6] = buff_info */
+  10,   /* field[10] = flash_abort */
+  9,   /* field[9] = flash_commit */
+  8,   /* field[8] = flash_data */
+  5,   /* field[5] = flash_info */
+  7,   /* field[7] = flash_load */
   1,   /* field[1] = handle */
   0,   /* field[0] = id */
   3,   /* field[3] = ping */
   2,   /* field[2] = type */
   4,   /* field[4] = version */
 };
-static const ProtobufCIntRange ctpcmd__number_ranges[2 + 1] =
+static const ProtobufCIntRange ctpcmd__number_ranges[3 + 1] =
 {
   { 1, 0 },
   { 10, 3 },
-  { 0, 5 }
+  { 20, 7 },
+  { 0, 11 }
 };
 const ProtobufCMessageDescriptor ctpcmd__descriptor =
 {
@@ -473,14 +1533,14 @@ const ProtobufCMessageDescriptor ctpcmd__descriptor =
   "CTPCmd",
   "",
   sizeof(CTPCmd),
-  5,
+  11,
   ctpcmd__field_descriptors,
   ctpcmd__field_indices_by_name,
-  2,  ctpcmd__number_ranges,
+  3,  ctpcmd__number_ranges,
   (ProtobufCMessageInit) ctpcmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor ctpres__field_descriptors[3] =
+static const ProtobufCFieldDescriptor ctpres__field_descriptors[10] =
 {
   {
     "id",
@@ -489,6 +1549,18 @@ static const ProtobufCFieldDescriptor ctpres__field_descriptors[3] =
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
     offsetof(CTPRes, id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "handle",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(CTPRes, handle),
     NULL,
     NULL,
     0,             /* flags */
@@ -518,17 +1590,97 @@ static const ProtobufCFieldDescriptor ctpres__field_descriptors[3] =
     PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "flash_info",
+    12,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, flash_info),
+    &flash_info_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "buff_info",
+    13,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, buff_info),
+    &buff_info_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_load",
+    20,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, flash_load),
+    &flash_load_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_data",
+    21,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, flash_data),
+    &flash_data_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_commit",
+    22,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, flash_commit),
+    &flash_commit_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "flash_abort",
+    23,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(CTPRes, body_case),
+    offsetof(CTPRes, flash_abort),
+    &flash_abort_res__descriptor,
+    NULL,
+    PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned ctpres__field_indices_by_name[] = {
+  5,   /* field[5] = buff_info */
+  9,   /* field[9] = flash_abort */
+  8,   /* field[8] = flash_commit */
+  7,   /* field[7] = flash_data */
+  4,   /* field[4] = flash_info */
+  6,   /* field[6] = flash_load */
+  1,   /* field[1] = handle */
   0,   /* field[0] = id */
-  1,   /* field[1] = ping */
-  2,   /* field[2] = version */
+  2,   /* field[2] = ping */
+  3,   /* field[3] = version */
 };
-static const ProtobufCIntRange ctpres__number_ranges[2 + 1] =
+static const ProtobufCIntRange ctpres__number_ranges[3 + 1] =
 {
   { 1, 0 },
-  { 10, 1 },
-  { 0, 3 }
+  { 10, 2 },
+  { 20, 6 },
+  { 0, 10 }
 };
 const ProtobufCMessageDescriptor ctpres__descriptor =
 {
@@ -538,10 +1690,10 @@ const ProtobufCMessageDescriptor ctpres__descriptor =
   "CTPRes",
   "",
   sizeof(CTPRes),
-  3,
+  10,
   ctpres__field_descriptors,
   ctpres__field_indices_by_name,
-  2,  ctpres__number_ranges,
+  3,  ctpres__number_ranges,
   (ProtobufCMessageInit) ctpres__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

@@ -8,15 +8,48 @@ enum CmdType{
 
 // ==================== 命令体 (host -> device) ====================
 
+// -- 简单指令 (fields 10-19) --
+
 message PingCmd {
-    // 无参数,仅探测设备是否存在
+    // 探测设备是否存在
 }
 
 message VersionCmd {
-    // 无参数,查询固件版本
+    // 查询固件版本
+}
+
+message FlashInfoCmd {
+    // 查询 Flash 信息
+}
+
+message BuffInfoCmd {
+    // 查询缓冲区配置
+}
+
+// -- 复杂指令 (fields 20+) --
+
+// 准备下载: 声明地址/长度, 设备端擦除目标区域并创建上下文
+message FlashLoadCmd {
+    uint32 addr = 1;
+    uint32 size = 2;
+}
+
+// 传输数据块
+message FlashDataCmd {
+    bytes data = 1;
+}
+
+// 提交: 刷新剩余数据, 释放上下文
+message FlashCommitCmd {
+}
+
+// 中止: 丢弃未完成数据, 释放上下文
+message FlashAbortCmd {
 }
 
 // ==================== 响应体 (device -> host) ====================
+
+// -- 简单响应 (fields 10-19) --
 
 message PingRes {
     bool alive = 1;
@@ -26,22 +59,67 @@ message VersionRes {
     string version = 1;
 }
 
+message FlashInfoRes {
+    bool present = 1;       // Flash 是否存在
+    uint32 size = 2;        // 容量 (字节)
+    uint32 mid = 3;         // 厂商 ID
+    uint32 did = 4;         // 设备 ID
+}
+
+message BuffInfoRes {
+    uint32 rx_size = 1;     // 接收缓冲大小
+    uint32 tx_size = 2;     // 发送缓冲大小
+}
+
+// -- 复杂响应 (fields 20+) --
+
+message FlashLoadRes {
+    bool ok = 1;            // false 时上下文已自动释放
+}
+
+message FlashDataRes {
+    uint32 written = 1;     // 累计已写入字节数
+}
+
+message FlashCommitRes {
+    bool ok = 1;            // 刷新 + 释放成功
+}
+
+message FlashAbortRes {
+    bool ok = 1;            // 释放成功
+}
+
 // ==================== 顶层帧 ====================
 
 message CTPCmd{
-    uint32 id = 1;          // 命令id,响应时原样带回
-    uint32 handle = 2;      // 上下文句柄,仅CMD_COMP时有效
-    CmdType type = 3;       // 指令类型,设备据此判断是否需要创建上下文
+    uint32 id = 1;          // 命令id, 响应时原样带回
+    uint32 handle = 2;      // CMD_COMP: 首次=0(设备创建), 后续=已分配句柄
+    CmdType type = 3;       // 指令类型
     oneof body{
         PingCmd ping = 10;
         VersionCmd version = 11;
+        FlashInfoCmd flash_info = 12;
+        BuffInfoCmd buff_info = 13;
+
+        FlashLoadCmd flash_load = 20;
+        FlashDataCmd flash_data = 21;
+        FlashCommitCmd flash_commit = 22;
+        FlashAbortCmd flash_abort = 23;
     }
 }
 
 message CTPRes{
-    uint32 id = 1;          // 对应命令id,与CTPCmd.id一致
+    uint32 id = 1;          // 对应命令id
+    uint32 handle = 2;      // CMD_COMP: 回传句柄(设备分配或回显)
     oneof body{
         PingRes ping = 10;
         VersionRes version = 11;
+        FlashInfoRes flash_info = 12;
+        BuffInfoRes buff_info = 13;
+
+        FlashLoadRes flash_load = 20;
+        FlashDataRes flash_data = 21;
+        FlashCommitRes flash_commit = 22;
+        FlashAbortRes flash_abort = 23;
     }
 }

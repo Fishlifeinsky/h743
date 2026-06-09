@@ -17,8 +17,20 @@ PROTOBUF_C__BEGIN_DECLS
 
 typedef struct PingCmd PingCmd;
 typedef struct VersionCmd VersionCmd;
+typedef struct FlashInfoCmd FlashInfoCmd;
+typedef struct BuffInfoCmd BuffInfoCmd;
+typedef struct FlashLoadCmd FlashLoadCmd;
+typedef struct FlashDataCmd FlashDataCmd;
+typedef struct FlashCommitCmd FlashCommitCmd;
+typedef struct FlashAbortCmd FlashAbortCmd;
 typedef struct PingRes PingRes;
 typedef struct VersionRes VersionRes;
+typedef struct FlashInfoRes FlashInfoRes;
+typedef struct BuffInfoRes BuffInfoRes;
+typedef struct FlashLoadRes FlashLoadRes;
+typedef struct FlashDataRes FlashDataRes;
+typedef struct FlashCommitRes FlashCommitRes;
+typedef struct FlashAbortRes FlashAbortRes;
 typedef struct CTPCmd CTPCmd;
 typedef struct CTPRes CTPRes;
 
@@ -52,6 +64,75 @@ struct  VersionCmd
  }
 
 
+struct  FlashInfoCmd
+{
+  ProtobufCMessage base;
+};
+#define FLASH_INFO_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_info_cmd__descriptor) \
+ }
+
+
+struct  BuffInfoCmd
+{
+  ProtobufCMessage base;
+};
+#define BUFF_INFO_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&buff_info_cmd__descriptor) \
+ }
+
+
+/*
+ * 准备下载: 声明地址/长度, 设备端擦除目标区域并创建上下文
+ */
+struct  FlashLoadCmd
+{
+  ProtobufCMessage base;
+  uint32_t addr;
+  uint32_t size;
+};
+#define FLASH_LOAD_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_load_cmd__descriptor) \
+, 0, 0 }
+
+
+/*
+ * 传输数据块
+ */
+struct  FlashDataCmd
+{
+  ProtobufCMessage base;
+  ProtobufCBinaryData data;
+};
+#define FLASH_DATA_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_data_cmd__descriptor) \
+, {0,NULL} }
+
+
+/*
+ * 提交: 刷新剩余数据, 释放上下文
+ */
+struct  FlashCommitCmd
+{
+  ProtobufCMessage base;
+};
+#define FLASH_COMMIT_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_commit_cmd__descriptor) \
+ }
+
+
+/*
+ * 中止: 丢弃未完成数据, 释放上下文
+ */
+struct  FlashAbortCmd
+{
+  ProtobufCMessage base;
+};
+#define FLASH_ABORT_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_abort_cmd__descriptor) \
+ }
+
+
 struct  PingRes
 {
   ProtobufCMessage base;
@@ -72,10 +153,110 @@ struct  VersionRes
 , (char *)protobuf_c_empty_string }
 
 
+struct  FlashInfoRes
+{
+  ProtobufCMessage base;
+  /*
+   * Flash 是否存在
+   */
+  protobuf_c_boolean present;
+  /*
+   * 容量 (字节)
+   */
+  uint32_t size;
+  /*
+   * 厂商 ID
+   */
+  uint32_t mid;
+  /*
+   * 设备 ID
+   */
+  uint32_t did;
+};
+#define FLASH_INFO_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_info_res__descriptor) \
+, 0, 0, 0, 0 }
+
+
+struct  BuffInfoRes
+{
+  ProtobufCMessage base;
+  /*
+   * 接收缓冲大小
+   */
+  uint32_t rx_size;
+  /*
+   * 发送缓冲大小
+   */
+  uint32_t tx_size;
+};
+#define BUFF_INFO_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&buff_info_res__descriptor) \
+, 0, 0 }
+
+
+struct  FlashLoadRes
+{
+  ProtobufCMessage base;
+  /*
+   * false 时上下文已自动释放
+   */
+  protobuf_c_boolean ok;
+};
+#define FLASH_LOAD_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_load_res__descriptor) \
+, 0 }
+
+
+struct  FlashDataRes
+{
+  ProtobufCMessage base;
+  /*
+   * 累计已写入字节数
+   */
+  uint32_t written;
+};
+#define FLASH_DATA_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_data_res__descriptor) \
+, 0 }
+
+
+struct  FlashCommitRes
+{
+  ProtobufCMessage base;
+  /*
+   * 刷新 + 释放成功
+   */
+  protobuf_c_boolean ok;
+};
+#define FLASH_COMMIT_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_commit_res__descriptor) \
+, 0 }
+
+
+struct  FlashAbortRes
+{
+  ProtobufCMessage base;
+  /*
+   * 释放成功
+   */
+  protobuf_c_boolean ok;
+};
+#define FLASH_ABORT_RES__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&flash_abort_res__descriptor) \
+, 0 }
+
+
 typedef enum {
   CTPCMD__BODY__NOT_SET = 0,
   CTPCMD__BODY_PING = 10,
-  CTPCMD__BODY_VERSION = 11
+  CTPCMD__BODY_VERSION = 11,
+  CTPCMD__BODY_FLASH_INFO = 12,
+  CTPCMD__BODY_BUFF_INFO = 13,
+  CTPCMD__BODY_FLASH_LOAD = 20,
+  CTPCMD__BODY_FLASH_DATA = 21,
+  CTPCMD__BODY_FLASH_COMMIT = 22,
+  CTPCMD__BODY_FLASH_ABORT = 23
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CTPCMD__BODY__CASE)
 } CTPCmd__BodyCase;
 
@@ -83,19 +264,25 @@ struct  CTPCmd
 {
   ProtobufCMessage base;
   /*
-   * 命令id,响应时原样带回
+   * 命令id, 响应时原样带回
    */
   uint32_t id;
   /*
-   * 上下文句柄,仅CMD_COMP时有效
+   * CMD_COMP: 首次=0(设备创建), 后续=已分配句柄
    */
   uint32_t handle;
   /*
-   * 指令类型,设备据此判断是否需要创建上下文
+   * 指令类型
    */
   CmdType type;
   CTPCmd__BodyCase body_case;
   union {
+    BuffInfoCmd *buff_info;
+    FlashAbortCmd *flash_abort;
+    FlashCommitCmd *flash_commit;
+    FlashDataCmd *flash_data;
+    FlashInfoCmd *flash_info;
+    FlashLoadCmd *flash_load;
     PingCmd *ping;
     VersionCmd *version;
   };
@@ -108,7 +295,13 @@ struct  CTPCmd
 typedef enum {
   CTPRES__BODY__NOT_SET = 0,
   CTPRES__BODY_PING = 10,
-  CTPRES__BODY_VERSION = 11
+  CTPRES__BODY_VERSION = 11,
+  CTPRES__BODY_FLASH_INFO = 12,
+  CTPRES__BODY_BUFF_INFO = 13,
+  CTPRES__BODY_FLASH_LOAD = 20,
+  CTPRES__BODY_FLASH_DATA = 21,
+  CTPRES__BODY_FLASH_COMMIT = 22,
+  CTPRES__BODY_FLASH_ABORT = 23
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CTPRES__BODY__CASE)
 } CTPRes__BodyCase;
 
@@ -116,18 +309,28 @@ struct  CTPRes
 {
   ProtobufCMessage base;
   /*
-   * 对应命令id,与CTPCmd.id一致
+   * 对应命令id
    */
   uint32_t id;
+  /*
+   * CMD_COMP: 回传句柄(设备分配或回显)
+   */
+  uint32_t handle;
   CTPRes__BodyCase body_case;
   union {
+    BuffInfoRes *buff_info;
+    FlashAbortRes *flash_abort;
+    FlashCommitRes *flash_commit;
+    FlashDataRes *flash_data;
+    FlashInfoRes *flash_info;
+    FlashLoadRes *flash_load;
     PingRes *ping;
     VersionRes *version;
   };
 };
 #define CTPRES__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ctpres__descriptor) \
-, 0, CTPRES__BODY__NOT_SET, {0} }
+, 0, 0, CTPRES__BODY__NOT_SET, {0} }
 
 
 /* PingCmd methods */
@@ -168,6 +371,120 @@ VersionCmd *
 void   version_cmd__free_unpacked
                      (VersionCmd *message,
                       ProtobufCAllocator *allocator);
+/* FlashInfoCmd methods */
+void   flash_info_cmd__init
+                     (FlashInfoCmd         *message);
+size_t flash_info_cmd__get_packed_size
+                     (const FlashInfoCmd   *message);
+size_t flash_info_cmd__pack
+                     (const FlashInfoCmd   *message,
+                      uint8_t             *out);
+size_t flash_info_cmd__pack_to_buffer
+                     (const FlashInfoCmd   *message,
+                      ProtobufCBuffer     *buffer);
+FlashInfoCmd *
+       flash_info_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_info_cmd__free_unpacked
+                     (FlashInfoCmd *message,
+                      ProtobufCAllocator *allocator);
+/* BuffInfoCmd methods */
+void   buff_info_cmd__init
+                     (BuffInfoCmd         *message);
+size_t buff_info_cmd__get_packed_size
+                     (const BuffInfoCmd   *message);
+size_t buff_info_cmd__pack
+                     (const BuffInfoCmd   *message,
+                      uint8_t             *out);
+size_t buff_info_cmd__pack_to_buffer
+                     (const BuffInfoCmd   *message,
+                      ProtobufCBuffer     *buffer);
+BuffInfoCmd *
+       buff_info_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   buff_info_cmd__free_unpacked
+                     (BuffInfoCmd *message,
+                      ProtobufCAllocator *allocator);
+/* FlashLoadCmd methods */
+void   flash_load_cmd__init
+                     (FlashLoadCmd         *message);
+size_t flash_load_cmd__get_packed_size
+                     (const FlashLoadCmd   *message);
+size_t flash_load_cmd__pack
+                     (const FlashLoadCmd   *message,
+                      uint8_t             *out);
+size_t flash_load_cmd__pack_to_buffer
+                     (const FlashLoadCmd   *message,
+                      ProtobufCBuffer     *buffer);
+FlashLoadCmd *
+       flash_load_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_load_cmd__free_unpacked
+                     (FlashLoadCmd *message,
+                      ProtobufCAllocator *allocator);
+/* FlashDataCmd methods */
+void   flash_data_cmd__init
+                     (FlashDataCmd         *message);
+size_t flash_data_cmd__get_packed_size
+                     (const FlashDataCmd   *message);
+size_t flash_data_cmd__pack
+                     (const FlashDataCmd   *message,
+                      uint8_t             *out);
+size_t flash_data_cmd__pack_to_buffer
+                     (const FlashDataCmd   *message,
+                      ProtobufCBuffer     *buffer);
+FlashDataCmd *
+       flash_data_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_data_cmd__free_unpacked
+                     (FlashDataCmd *message,
+                      ProtobufCAllocator *allocator);
+/* FlashCommitCmd methods */
+void   flash_commit_cmd__init
+                     (FlashCommitCmd         *message);
+size_t flash_commit_cmd__get_packed_size
+                     (const FlashCommitCmd   *message);
+size_t flash_commit_cmd__pack
+                     (const FlashCommitCmd   *message,
+                      uint8_t             *out);
+size_t flash_commit_cmd__pack_to_buffer
+                     (const FlashCommitCmd   *message,
+                      ProtobufCBuffer     *buffer);
+FlashCommitCmd *
+       flash_commit_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_commit_cmd__free_unpacked
+                     (FlashCommitCmd *message,
+                      ProtobufCAllocator *allocator);
+/* FlashAbortCmd methods */
+void   flash_abort_cmd__init
+                     (FlashAbortCmd         *message);
+size_t flash_abort_cmd__get_packed_size
+                     (const FlashAbortCmd   *message);
+size_t flash_abort_cmd__pack
+                     (const FlashAbortCmd   *message,
+                      uint8_t             *out);
+size_t flash_abort_cmd__pack_to_buffer
+                     (const FlashAbortCmd   *message,
+                      ProtobufCBuffer     *buffer);
+FlashAbortCmd *
+       flash_abort_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_abort_cmd__free_unpacked
+                     (FlashAbortCmd *message,
+                      ProtobufCAllocator *allocator);
 /* PingRes methods */
 void   ping_res__init
                      (PingRes         *message);
@@ -205,6 +522,120 @@ VersionRes *
                       const uint8_t       *data);
 void   version_res__free_unpacked
                      (VersionRes *message,
+                      ProtobufCAllocator *allocator);
+/* FlashInfoRes methods */
+void   flash_info_res__init
+                     (FlashInfoRes         *message);
+size_t flash_info_res__get_packed_size
+                     (const FlashInfoRes   *message);
+size_t flash_info_res__pack
+                     (const FlashInfoRes   *message,
+                      uint8_t             *out);
+size_t flash_info_res__pack_to_buffer
+                     (const FlashInfoRes   *message,
+                      ProtobufCBuffer     *buffer);
+FlashInfoRes *
+       flash_info_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_info_res__free_unpacked
+                     (FlashInfoRes *message,
+                      ProtobufCAllocator *allocator);
+/* BuffInfoRes methods */
+void   buff_info_res__init
+                     (BuffInfoRes         *message);
+size_t buff_info_res__get_packed_size
+                     (const BuffInfoRes   *message);
+size_t buff_info_res__pack
+                     (const BuffInfoRes   *message,
+                      uint8_t             *out);
+size_t buff_info_res__pack_to_buffer
+                     (const BuffInfoRes   *message,
+                      ProtobufCBuffer     *buffer);
+BuffInfoRes *
+       buff_info_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   buff_info_res__free_unpacked
+                     (BuffInfoRes *message,
+                      ProtobufCAllocator *allocator);
+/* FlashLoadRes methods */
+void   flash_load_res__init
+                     (FlashLoadRes         *message);
+size_t flash_load_res__get_packed_size
+                     (const FlashLoadRes   *message);
+size_t flash_load_res__pack
+                     (const FlashLoadRes   *message,
+                      uint8_t             *out);
+size_t flash_load_res__pack_to_buffer
+                     (const FlashLoadRes   *message,
+                      ProtobufCBuffer     *buffer);
+FlashLoadRes *
+       flash_load_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_load_res__free_unpacked
+                     (FlashLoadRes *message,
+                      ProtobufCAllocator *allocator);
+/* FlashDataRes methods */
+void   flash_data_res__init
+                     (FlashDataRes         *message);
+size_t flash_data_res__get_packed_size
+                     (const FlashDataRes   *message);
+size_t flash_data_res__pack
+                     (const FlashDataRes   *message,
+                      uint8_t             *out);
+size_t flash_data_res__pack_to_buffer
+                     (const FlashDataRes   *message,
+                      ProtobufCBuffer     *buffer);
+FlashDataRes *
+       flash_data_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_data_res__free_unpacked
+                     (FlashDataRes *message,
+                      ProtobufCAllocator *allocator);
+/* FlashCommitRes methods */
+void   flash_commit_res__init
+                     (FlashCommitRes         *message);
+size_t flash_commit_res__get_packed_size
+                     (const FlashCommitRes   *message);
+size_t flash_commit_res__pack
+                     (const FlashCommitRes   *message,
+                      uint8_t             *out);
+size_t flash_commit_res__pack_to_buffer
+                     (const FlashCommitRes   *message,
+                      ProtobufCBuffer     *buffer);
+FlashCommitRes *
+       flash_commit_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_commit_res__free_unpacked
+                     (FlashCommitRes *message,
+                      ProtobufCAllocator *allocator);
+/* FlashAbortRes methods */
+void   flash_abort_res__init
+                     (FlashAbortRes         *message);
+size_t flash_abort_res__get_packed_size
+                     (const FlashAbortRes   *message);
+size_t flash_abort_res__pack
+                     (const FlashAbortRes   *message,
+                      uint8_t             *out);
+size_t flash_abort_res__pack_to_buffer
+                     (const FlashAbortRes   *message,
+                      ProtobufCBuffer     *buffer);
+FlashAbortRes *
+       flash_abort_res__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   flash_abort_res__free_unpacked
+                     (FlashAbortRes *message,
                       ProtobufCAllocator *allocator);
 /* CTPCmd methods */
 void   ctpcmd__init
@@ -252,11 +683,47 @@ typedef void (*PingCmd_Closure)
 typedef void (*VersionCmd_Closure)
                  (const VersionCmd *message,
                   void *closure_data);
+typedef void (*FlashInfoCmd_Closure)
+                 (const FlashInfoCmd *message,
+                  void *closure_data);
+typedef void (*BuffInfoCmd_Closure)
+                 (const BuffInfoCmd *message,
+                  void *closure_data);
+typedef void (*FlashLoadCmd_Closure)
+                 (const FlashLoadCmd *message,
+                  void *closure_data);
+typedef void (*FlashDataCmd_Closure)
+                 (const FlashDataCmd *message,
+                  void *closure_data);
+typedef void (*FlashCommitCmd_Closure)
+                 (const FlashCommitCmd *message,
+                  void *closure_data);
+typedef void (*FlashAbortCmd_Closure)
+                 (const FlashAbortCmd *message,
+                  void *closure_data);
 typedef void (*PingRes_Closure)
                  (const PingRes *message,
                   void *closure_data);
 typedef void (*VersionRes_Closure)
                  (const VersionRes *message,
+                  void *closure_data);
+typedef void (*FlashInfoRes_Closure)
+                 (const FlashInfoRes *message,
+                  void *closure_data);
+typedef void (*BuffInfoRes_Closure)
+                 (const BuffInfoRes *message,
+                  void *closure_data);
+typedef void (*FlashLoadRes_Closure)
+                 (const FlashLoadRes *message,
+                  void *closure_data);
+typedef void (*FlashDataRes_Closure)
+                 (const FlashDataRes *message,
+                  void *closure_data);
+typedef void (*FlashCommitRes_Closure)
+                 (const FlashCommitRes *message,
+                  void *closure_data);
+typedef void (*FlashAbortRes_Closure)
+                 (const FlashAbortRes *message,
                   void *closure_data);
 typedef void (*CTPCmd_Closure)
                  (const CTPCmd *message,
@@ -273,8 +740,20 @@ typedef void (*CTPRes_Closure)
 extern const ProtobufCEnumDescriptor    cmd_type__descriptor;
 extern const ProtobufCMessageDescriptor ping_cmd__descriptor;
 extern const ProtobufCMessageDescriptor version_cmd__descriptor;
+extern const ProtobufCMessageDescriptor flash_info_cmd__descriptor;
+extern const ProtobufCMessageDescriptor buff_info_cmd__descriptor;
+extern const ProtobufCMessageDescriptor flash_load_cmd__descriptor;
+extern const ProtobufCMessageDescriptor flash_data_cmd__descriptor;
+extern const ProtobufCMessageDescriptor flash_commit_cmd__descriptor;
+extern const ProtobufCMessageDescriptor flash_abort_cmd__descriptor;
 extern const ProtobufCMessageDescriptor ping_res__descriptor;
 extern const ProtobufCMessageDescriptor version_res__descriptor;
+extern const ProtobufCMessageDescriptor flash_info_res__descriptor;
+extern const ProtobufCMessageDescriptor buff_info_res__descriptor;
+extern const ProtobufCMessageDescriptor flash_load_res__descriptor;
+extern const ProtobufCMessageDescriptor flash_data_res__descriptor;
+extern const ProtobufCMessageDescriptor flash_commit_res__descriptor;
+extern const ProtobufCMessageDescriptor flash_abort_res__descriptor;
 extern const ProtobufCMessageDescriptor ctpcmd__descriptor;
 extern const ProtobufCMessageDescriptor ctpres__descriptor;
 
