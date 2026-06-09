@@ -44,39 +44,63 @@ CTPRes { id, oneof{ PingRes, VersionRes, ... } }
    ```
 3. 重新编译项目，`module.cmake` 会通过 `file(GLOB *.pb-c.c)` 自动包含生成的 C 文件
 
+## 辅助宏 (include/ctp_helper.h)
+
+### 通用宏 (与 proto 无关)
+
+| 宏 | 说明 |
+|---|---|
+| `PB_DECL(Type, var)` | 栈上声明并初始化消息 |
+| `PB_INIT(name, msg)` | 调用 `name__init(msg)` |
+| `PB_UNPACK(name, len, data)` | 解包 |
+| `PB_PACK(msg, out)` | 打包到动态 buffer |
+| `PB_FREE(name, msg)` | 释放解包消息 |
+
+### CTP 帧构造宏 (通用，新增指令无需改宏)
+
+```
+CTP_CMD(var, id, type, Body, field, BODY)
+CTP_RES(var, id, Body, field, BODY)
+```
+
+参数约定以 `PingCmd` 为例：
+- `Body` = `PingCmd` (message 类型)
+- `field` = `ping` (oneof 字段名，小写)
+- `BODY` = `PING` (body_case 枚举后缀，大写)
+
+生成变量：`var` (顶层帧), `var_body` (子消息)。
+
 ## 使用示例
 
 ```c
-#include "protobuf_c_port.h"
-#include "ctp.pb-c.h"
+#include "ctp_helper.h"
 
-// ===== 主机侧：打包命令 =====
-CTPCmd cmd = CTP_CMD__INIT;
-cmd.id = 1;
-cmd.type = CMD__EASY;
-PingCmd ping = PING_CMD__INIT;
-cmd.body_case = CTP_CMD__BODY_PING;
-cmd.ping = &ping;
+// ===== 主机侧：构造并发送命令 =====
+CTP_CMD(cmd, 1, CMD_TYPE__CMD_EASY, PingCmd, ping, PING);
 
 uint8_t *out = NULL;
-size_t  len  = protobuf_c_port_pack(&cmd.base, &out);
+size_t  len  = PB_PACK(&cmd, &out);
 // 发送 out/len ...
 
-// ===== 设备侧：解包并应答 =====
-CTPCmd *recv = ctp_cmd__unpack(NULL, len, buf);
-// 匹配 id, 执行指令
-PingRes res = PING_RES__INIT;
-res.alive = true;
-CTPRes resp = CTP_RES__INIT;
-resp.id = recv->id;
-resp.body_case = CTP_RES__BODY_PING;
-resp.ping = &res;
-ctp_cmd__free_unpacked(recv, NULL);
+// ===== 设备侧：接收并应答 =====
+CTPCmd *recv = PB_UNPACK(ctpcmd, len, buf);
+
+CTP_RES(resp, recv->id, PingRes, ping, PING);
+resp_body.alive = true;
 
 uint8_t *out2 = NULL;
-size_t  len2  = protobuf_c_port_pack(&resp.base, &out2);
-free(out2);
+size_t  len2  = PB_PACK(&resp, &out2);
+
+PB_FREE(ctpcmd, recv);
 free(out);
+free(out2);
+
+// ===== Version 指令同理 =====
+CTP_CMD(vcmd, 2, CMD_TYPE__CMD_EASY, VersionCmd, version, VERSION);
+// 发送...
+
+CTP_RES(vres, vcmd.id, VersionRes, version, VERSION);
+vres_body.version = "1.0.0";
 ```
 
 ## 上下文管理 (CMD_COMP)
