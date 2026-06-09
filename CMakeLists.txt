@@ -45,7 +45,7 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Drivers/STM32H7xx_HAL_Driver/Inc Drivers/STM32H7xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32H7xx/Include Drivers/CMSIS/Include)
+include_directories(Core/Inc Drivers/STM32H7xx_HAL_Driver/Inc Drivers/STM32H7xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32H7xx/Include Drivers/CMSIS/Include ${APP_INCLUDES})
 
 add_definitions(-DDEBUG -DUSE_PWR_LDO_SUPPLY -DUSE_HAL_DRIVER -DSTM32H743xx -DSYSTICK_HANDLER_PROVIDED -DHARDFAULT_HANDLER_PROVIDED -DINIT_PROVIDED)
 
@@ -130,6 +130,14 @@ foreach(MOD_FILE ${MW_MODULE_FILES})
     list(APPEND MW_INCLUDES ${MODULE_INCLUDES})
 endforeach()
 
+# --- application 模块 (遍历 application/*/module.cmake) ---
+file(GLOB APP_MODULE_FILES ${CMAKE_SOURCE_DIR}/application/*/module.cmake)
+foreach(MOD_FILE ${APP_MODULE_FILES})
+    include(${MOD_FILE})
+    list(APPEND APP_SOURCES ${MODULE_SOURCES})
+    list(APPEND APP_INCLUDES ${MODULE_INCLUDES})
+endforeach()
+
 #==============================================================================
 # 构建 platform 库
 #==============================================================================
@@ -185,7 +193,7 @@ add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR
 add_link_options(-mcpu=cortex-m7 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
 
-add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+add_executable(${PROJECT_NAME}.elf ${SOURCES} ${APP_SOURCES} ${LINKER_SCRIPT})
 target_link_libraries(${PROJECT_NAME}.elf -Wl,--whole-archive platform -Wl,--no-whole-archive)
 
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)

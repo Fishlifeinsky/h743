@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+enum CmdType{
+    CMD_EASY = 0;
+    CMD_COMP = 1;
+    CMD_SWIT = 2;
+}
+
+// ==================== 命令体 (host -> device) ====================
+
+message PingCmd {
+    // 无参数,仅探测设备是否存在
+}
+
+message VersionCmd {
+    // 无参数,查询固件版本
+}
+
+// ==================== 响应体 (device -> host) ====================
+
+message PingRes {
+    bool alive = 1;
+}
+
+message VersionRes {
+    string version = 1;
+}
+
+// ==================== 顶层帧 ====================
+
+message CTPCmd{
+    uint32 id = 1;          // 命令id,响应时原样带回
+    uint32 handle = 2;      // 上下文句柄,仅CMD_COMP时有效
+    CmdType type = 3;       // 指令类型,设备据此判断是否需要创建上下文
+    oneof body{
+        PingCmd ping = 10;
+        VersionCmd version = 11;
+    }
+}
+
+message CTPRes{
+    uint32 id = 1;          // 对应命令id,与CTPCmd.id一致
+    oneof body{
+        PingRes ping = 10;
+        VersionRes version = 11;
+    }
+}
