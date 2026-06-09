@@ -51,7 +51,7 @@
 #include "lcd.h"
 #include "uart.h"
 #include "usb_msc.h"
-#include "vendor.h"
+#include "usb_vdb.h"
 #include "lcd.h"
 #include "lv_port.h"
 #include "lvgl.h"
@@ -165,7 +165,7 @@ static void usb_task(void *pvParameters)
     (void)pvParameters;
     for (;;) {
         tusb_port_task();
-        vendor_poll();
+        usb_vdb_poll();
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
@@ -315,7 +315,7 @@ int main(void)
   fatfs_port_init();      // 挂载 SD 卡文件系统 (f_mount)
   fatfs_port_vfs_init();  // 注册 VFS 节点 (根 "/sd")
   usb_msc_init();         // 缓存 SD 卡信息 (必须在 tusb_port_init 之前)
-  vendor_init();          // 初始化 VENDOR 协议
+  usb_vdb_init();          // 初始化 USB VDB
   tusb_port_init();       // 初始化 TinyUSB 设备
   uart_init();                     // UART RXNE 中断在硬件初始化完成后才开启
   uart_vfs_init();

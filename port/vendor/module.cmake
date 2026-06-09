@@ -1,7 +1,0 @@
-set(MODULE_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/vendor.c
-    ${CMAKE_CURRENT_LIST_DIR}/vendor_flash.c
-)
-set(MODULE_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/include
-)
