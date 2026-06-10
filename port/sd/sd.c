@@ -11,7 +11,8 @@
 //--------------------------------------------------------------------+
 
 static HAL_SD_CardInfoTypeDef g_info;
-static volatile int           g_ready = 0;
+
+MODULE_DECLARE(sd,NULL);
 
 #if BSP_FREERTOS_ENABLED
 static SemaphoreHandle_t g_mutex;
@@ -29,6 +30,9 @@ static StaticSemaphore_t g_mutex_buffer;
 //--------------------------------------------------------------------+
 
 int sd_init(void) {
+    MODULE_DEPEND_IS_INIT_ASSERT(sd);
+    if(!MODULE_DEPEND_IS_INIT(sd)) return -1;
+    if(MODULE_IS_INIT(sd)) return 0;
 
     if (HAL_SD_GetCardInfo(&hsd1, &g_info) != HAL_OK) {
         DEBUG_PRINT("SD: get card info failed\r\n");
@@ -55,8 +59,7 @@ int sd_init(void) {
         DEBUG_PRINT("SD: high speed not supported, running at default\r\n");
     }
 
-    g_ready = 1;
-    DEBUG_PRINT("SD: init ok\r\n");
+    MODULE_INIT_DONE(sd);
     return 0;
 }
 
@@ -67,7 +70,7 @@ void sd_rtos_init(void) {
 }
 
 int sd_read(uint8_t *buf, uint32_t sector, uint32_t count, uint32_t timeout_ms) {
-    if (!g_ready) return -1;
+    if (!MODULE_IS_INIT(sd)) return -1;
 
     SD_LOCK();
     if (HAL_SD_ReadBlocks(&hsd1, buf, sector, count, timeout_ms) != HAL_OK) {
@@ -80,7 +83,7 @@ int sd_read(uint8_t *buf, uint32_t sector, uint32_t count, uint32_t timeout_ms) 
 }
 
 int sd_write(const uint8_t *buf, uint32_t sector, uint32_t count, uint32_t timeout_ms) {
-    if (!g_ready) return -1;
+    if (!MODULE_IS_INIT(sd)) return -1;
 
     SD_LOCK();
     if (HAL_SD_WriteBlocks(&hsd1, (uint8_t *)buf, sector, count, timeout_ms) != HAL_OK) {
@@ -93,7 +96,7 @@ int sd_write(const uint8_t *buf, uint32_t sector, uint32_t count, uint32_t timeo
 }
 
 int sd_erase(uint32_t sector_start, uint32_t sector_end) {
-    if (!g_ready) return -1;
+    if (!MODULE_IS_INIT(sd)) return -1;
 
     SD_LOCK();
     if (HAL_SD_Erase(&hsd1, sector_start, sector_end) != HAL_OK) {
@@ -106,17 +109,17 @@ int sd_erase(uint32_t sector_start, uint32_t sector_end) {
 }
 
 int sd_get_info(HAL_SD_CardInfoTypeDef *info) {
-    if (!g_ready || !info) return -1;
+    if (!MODULE_IS_INIT(sd) || !info) return -1;
     *info = g_info;
     return 0;
 }
 
 int sd_get_state(HAL_SD_CardStateTypeDef *state) {
-    if (!g_ready || !state) return -1;
+    if (!MODULE_IS_INIT(sd) || !state) return -1;
     *state = HAL_SD_GetCardState(&hsd1);
     return 0;
 }
 
 int sd_is_ready(void) {
-    return g_ready;
+    return MODULE_IS_INIT(sd);
 }
