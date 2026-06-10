@@ -2,7 +2,7 @@
 #define CTP_HELPER_H
 
 #include "ctp.pb-c.h"
-#include "protobuf_c_port.h"
+#include "ctpb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +25,7 @@ extern "C" {
 #define PB_FREE(name, msg)           name##__free_unpacked((msg), NULL)
 
 // 打包到动态分配 buffer (失败返回 0)
-#define PB_PACK(msg, out)            protobuf_c_port_pack(&(msg)->base, (out))
+#define PB_PACK(msg, out)            ctpb_pack(&(msg)->base, (out))
 
 // =====================================================================
 // CTP 帧构造宏 (通用, 不随 proto 新增指令而修改)

@@ -1,6 +1,6 @@
-# protobuf_c_port
+# ctpb (控制传输 protobuf)
 
-protobuf-c 移植模块。基于 mem 模块的 `--wrap=malloc` 机制，unpack 传 `NULL` 分配器即可使用 TLSF 内存池。
+基于 mem 模块的 `--wrap=malloc` 机制，unpack 传 `NULL` 分配器即可使用 TLSF 内存池。
 
 ## 协议定义 (CTP.proto)
 
@@ -39,7 +39,7 @@ CTPRes { id, oneof{ PingRes, VersionRes, ... } }
    或手动执行：
    ```bat
    set PATH=tools;%PATH%
-   cd port\protobuf_c_port
+   cd port\ctpb
    protoc --c_out=. CTP.proto
    ```
 3. 重新编译项目，`module.cmake` 会通过 `file(GLOB *.pb-c.c)` 自动包含生成的 C 文件
