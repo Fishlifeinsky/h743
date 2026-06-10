@@ -1,5 +1,5 @@
-#ifndef BSP_USB_MSC_H_
-#define BSP_USB_MSC_H_
+#ifndef USB_MSC_H_
+#define USB_MSC_H_
 
 #include <stdint.h>
 #include "port/config.h"

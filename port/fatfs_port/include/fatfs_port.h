@@ -1,5 +1,5 @@
-#ifndef BSP_FATFS_PORT_H_
-#define BSP_FATFS_PORT_H_
+#ifndef FATFS_PORT_H_
+#define FATFS_PORT_H_
 
 #include <stdint.h>
 #include "port/config.h"

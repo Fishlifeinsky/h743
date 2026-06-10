@@ -2,11 +2,12 @@
 #include "ff.h"
 #include "sd.h"
 
+MODULE_EXTERN(sd);
+MODULE_DECLARE(fatfs_port, &mod_sd);
+
 //--------------------------------------------------------------------+
 // 内部全局变量
 //--------------------------------------------------------------------+
-
-static int g_sd_ready = 0;
 
 // SD 卡信息缓存 (fatfs_port_sd_init 时填充)
 static HAL_SD_CardInfoTypeDef g_card_info;
@@ -32,25 +33,21 @@ DWORD get_fattime(void) {
 int fatfs_port_sd_init(void) {
     // sd_init() 已在 main.c 中提前调用, 此处直接获取信息
 
-    if (!sd_is_ready()) {
-        DEBUG_PRINT("FATFS: sd not ready\r\n");
-        g_sd_ready = 0;
-        return -1;
-    }
+    MODULE_DEPEND_IS_INIT_ASSERT(fatfs_port);
+    if (!MODULE_DEPEND_IS_INIT(fatfs_port)) return -1;
+    if (MODULE_IS_INIT(fatfs_port)) return 0;
 
     if (sd_get_info(&g_card_info) != 0) {
         DEBUG_PRINT("FATFS: get card info failed\r\n");
-        g_sd_ready = 0;
         return -1;
     }
 
-    g_sd_ready = 1;
-    DEBUG_PRINT("FATFS: sd init ok\r\n");
+    MODULE_INIT_DONE(fatfs_port);
     return 0;
 }
 
 int fatfs_port_sd_status(void) {
-    if (!g_sd_ready) return -1;
+    if (!MODULE_IS_INIT(fatfs_port)) return -1;
 
     HAL_SD_CardStateTypeDef state;
     if (sd_get_state(&state) != 0) return -1;
@@ -61,7 +58,7 @@ int fatfs_port_sd_status(void) {
 }
 
 int fatfs_port_sd_read(uint8_t *buf, uint32_t sector, uint32_t count) {
-    if (!g_sd_ready) return -1;
+    if (!MODULE_IS_INIT(fatfs_port)) return -1;
 
     if (sd_read(buf, sector, count, 1000) != 0) {
         DEBUG_PRINT("FATFS: read sector=%lu count=%lu failed\r\n", sector, count);
@@ -71,7 +68,7 @@ int fatfs_port_sd_read(uint8_t *buf, uint32_t sector, uint32_t count) {
 }
 
 int fatfs_port_sd_write(const uint8_t *buf, uint32_t sector, uint32_t count) {
-    if (!g_sd_ready) return -1;
+    if (!MODULE_IS_INIT(fatfs_port)) return -1;
 
     if (sd_write(buf, sector, count, 1000) != 0) {
         DEBUG_PRINT("FATFS: write sector=%lu count=%lu failed\r\n", sector, count);
@@ -81,7 +78,7 @@ int fatfs_port_sd_write(const uint8_t *buf, uint32_t sector, uint32_t count) {
 }
 
 int fatfs_port_sd_ioctl(uint8_t cmd, void *buf) {
-    if (!g_sd_ready) return -1;
+    if (!MODULE_IS_INIT(fatfs_port)) return -1;
 
     switch (cmd) {
     case 0:  // CTRL_SYNC
@@ -143,7 +140,7 @@ int fatfs_port_init(void) {
 }
 
 void fatfs_port_get_info(void) {
-    if (!g_sd_ready) {
+    if (!MODULE_IS_INIT(fatfs_port)) {
         DEBUG_PRINT("FATFS: no card info\r\n");
         return;
     }

@@ -3,13 +3,15 @@
 #include "sd.h"
 #include <string.h>
 
+MODULE_EXTERN(sd);
+MODULE_DECLARE(usb_msc, &mod_sd);
+
 //--------------------------------------------------------------------+
 // 内部全局变量
 //--------------------------------------------------------------------+
 
 // SD 卡信息缓存
 static HAL_SD_CardInfoTypeDef g_card_info;
-static volatile bool           g_card_ready = false;
 static volatile bool           g_ejected    = false;
 
 // 单扇区缓存 (避免同一 LBA 的多次部分读取反复读 SD)
@@ -24,7 +26,7 @@ static uint8_t  g_cache_buf[512] TU_ATTR_ALIGNED(4);
 // 读取容量: 扇区数 + 扇区大小
 void tud_msc_capacity_cb(uint8_t lun, uint32_t *block_count, uint16_t *block_size) {
     (void)lun;
-    if (g_card_ready) {
+    if (MODULE_IS_INIT(usb_msc)) {
         *block_count = g_card_info.BlockNbr;
         *block_size  = (uint16_t)g_card_info.BlockSize;
     } else {
@@ -49,7 +51,7 @@ void tud_msc_inquiry_cb(uint8_t lun, uint8_t vendor_id[8],
 // 介质就绪检测
 bool tud_msc_test_unit_ready_cb(uint8_t lun) {
     (void)lun;
-    return g_card_ready && !g_ejected;
+    return MODULE_IS_INIT(usb_msc) && !g_ejected;
 }
 
 // Start/Stop 与介质弹出
@@ -75,7 +77,7 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset,
                           void *buffer, uint32_t bufsize) {
     (void)lun;
 
-    if (!g_card_ready || g_ejected) return -1;
+    if (!MODULE_IS_INIT(usb_msc) || g_ejected) return -1;
 
     uint32_t block_size = g_card_info.BlockSize;
 
@@ -110,7 +112,7 @@ int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset,
                            uint8_t *buffer, uint32_t bufsize) {
     (void)lun;
 
-    if (!g_card_ready || g_ejected) return -1;
+    if (!MODULE_IS_INIT(usb_msc) || g_ejected) return -1;
 
     uint32_t block_size = g_card_info.BlockSize;
 
@@ -158,7 +160,7 @@ int32_t tud_msc_scsi_cb(uint8_t lun, uint8_t const scsi_cmd[16],
 // 写保护检测
 bool tud_msc_is_writable_cb(uint8_t lun) {
     (void)lun;
-    return g_card_ready && !g_ejected;
+    return MODULE_IS_INIT(usb_msc) && !g_ejected;
 }
 
 // 单 LUN
@@ -171,16 +173,20 @@ uint8_t tud_msc_get_maxlun_cb(void) {
 //--------------------------------------------------------------------+
 
 void usb_msc_init(void) {
+    MODULE_DEPEND_IS_INIT_ASSERT(usb_msc);
+    if (!MODULE_DEPEND_IS_INIT(usb_msc)) return;
+    if (MODULE_IS_INIT(usb_msc)) return;
+
     if (sd_get_info(&g_card_info) != 0) {
         DEBUG_PRINT("MSC: get card info failed\r\n");
-        g_card_ready = false;
         return;
     }
 
-    g_card_ready = true;
-    g_ejected    = false;
+    g_ejected = false;
 
-    DEBUG_PRINT("MSC: init ok, BlockNbr=%lu, BlockSize=%lu\r\n",
+    MODULE_INIT_DONE(usb_msc);
+
+    DEBUG_PRINT("MSC: BlockNbr=%lu, BlockSize=%lu\r\n",
                 g_card_info.BlockNbr, g_card_info.BlockSize);
 }
 
@@ -192,7 +198,7 @@ void usb_msc_init(void) {
 void usb_msc_test(void) {
     DEBUG_PRINT("\r\n=== USB MSC Test ===\r\n");
 
-    if (!g_card_ready) {
+    if (!MODULE_IS_INIT(usb_msc)) {
         DEBUG_PRINT("MSC TEST: card not ready\r\n");
         return;
     }
