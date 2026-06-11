@@ -17,4 +17,11 @@ if "%~1"=="" (
         protoc --c_out=. %%f
     )
 )
+
+rem 将生成的 .pb-c.h 头文件移动到 include 目录
+for %%f in (*.pb-c.h) do (
+    echo Moving: %%f -^> include\
+    move /y "%%f" "include\" >nul
+)
+
 echo Done.

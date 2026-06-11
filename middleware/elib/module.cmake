@@ -1,5 +1,6 @@
 set(MODULE_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/list.c
+    ${CMAKE_CURRENT_LIST_DIR}/ring_buffer.c
 )
 set(MODULE_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/..

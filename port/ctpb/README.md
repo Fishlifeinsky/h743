@@ -44,64 +44,56 @@ CTPRes { id, oneof{ PingRes, VersionRes, ... } }
    ```
 3. 重新编译项目，`module.cmake` 会通过 `file(GLOB *.pb-c.c)` 自动包含生成的 C 文件
 
-## 辅助宏 (include/ctp_helper.h)
-
-### 通用宏 (与 proto 无关)
-
-| 宏 | 说明 |
-|---|---|
-| `PB_DECL(Type, var)` | 栈上声明并初始化消息 |
-| `PB_INIT(name, msg)` | 调用 `name__init(msg)` |
-| `PB_UNPACK(name, len, data)` | 解包 |
-| `PB_PACK(msg, out)` | 打包到动态 buffer |
-| `PB_FREE(name, msg)` | 释放解包消息 |
-
-### CTP 帧构造宏 (通用，新增指令无需改宏)
-
-```
-CTP_CMD(var, id, type, Body, field, BODY)
-CTP_RES(var, id, Body, field, BODY)
-```
-
-参数约定以 `PingCmd` 为例：
-- `Body` = `PingCmd` (message 类型)
-- `field` = `ping` (oneof 字段名，小写)
-- `BODY` = `PING` (body_case 枚举后缀，大写)
-
-生成变量：`var` (顶层帧), `var_body` (子消息)。
-
 ## 使用示例
 
-```c
-#include "ctp_helper.h"
+### 构造并发送命令
 
-// ===== 主机侧：构造并发送命令 =====
-CTP_CMD(cmd, 1, CMD_TYPE__CMD_EASY, PingCmd, ping, PING);
+```c
+#include "ctp.pb-c.h"
+
+PingCmd body = PING_CMD__INIT;
+CTPCmd  cmd  = CTPCMD__INIT;
+
+cmd.id        = 1;
+cmd.type      = CMD_TYPE__CMD_EASY;
+cmd.body_case = CTPCMD__BODY_PING;
+cmd.ping      = &body;
 
 uint8_t *out = NULL;
-size_t  len  = PB_PACK(&cmd, &out);
+size_t  len  = ctpb_frame_pack(&cmd.base, &out);
 // 发送 out/len ...
-
-// ===== 设备侧：接收并应答 =====
-CTPCmd *recv = PB_UNPACK(ctpcmd, len, buf);
-
-CTP_RES(resp, recv->id, PingRes, ping, PING);
-resp_body.alive = true;
-
-uint8_t *out2 = NULL;
-size_t  len2  = PB_PACK(&resp, &out2);
-
-PB_FREE(ctpcmd, recv);
 free(out);
-free(out2);
-
-// ===== Version 指令同理 =====
-CTP_CMD(vcmd, 2, CMD_TYPE__CMD_EASY, VersionCmd, version, VERSION);
-// 发送...
-
-CTP_RES(vres, vcmd.id, VersionRes, version, VERSION);
-vres_body.version = "1.0.0";
 ```
+
+### 接收并应答
+
+```c
+uint8_t buf[256];
+size_t len = ctpb_frame_recv(buf, sizeof(buf), portMAX_DELAY);
+CTPCmd *recv = ctpcmd__unpack(NULL, len, buf);
+
+PingRes body = PING_RES__INIT;
+CTPRes  res  = CTPRES__INIT;
+res.id        = recv->id;
+res.body_case = CTPRES__BODY_PING;
+res.ping      = &body;
+body.alive    = true;
+
+uint8_t *out = NULL;
+size_t  len2 = ctpb_frame_pack(&res.base, &out);
+// 发送 out/len2 ...
+
+ctpcmd__free_unpacked(recv, NULL);
+free(out);
+```
+
+### 添加新指令
+
+1. 在 `CTP.proto` 中定义 `message XxxCmd` / `message XxxRes`
+2. 在 `CTPCmd` / `CTPRes` 的 `oneof body` 中添加字段
+3. 运行 `tools\gen_proto.bat` 重新生成
+4. 在 `ctpb.c` 中添加 `static void handle_xxx(const CTPCmd *cmd)` 处理函数
+5. 在 `ctpb_init()` 中注册: `g_handlers[CTPCMD__BODY_XXX] = handle_xxx;`
 
 ## 上下文管理 (CMD_COMP)
 

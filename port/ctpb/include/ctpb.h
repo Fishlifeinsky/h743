@@ -12,9 +12,13 @@ extern "C" {
 // 外部接口
 //--------------------------------------------------------------------+
 
-// 打包消息到动态分配的 buffer，调用者负责释放
-// 返回打包后的字节数，失败返回 0
-size_t ctpb_pack(ProtobufCMessage *msg, uint8_t **out);
+void ctpb_init(void);       // 初始化 protobuf-c + 帧层
+void ctpb_rtos_init(void);  // FreeRTOS 资源初始化 (调度器启动后调用)
+void ctpb_poll(void);       // 轮询接收并分发帧
+
+// 注册传输层发送回调 (供 ctpb 内部发送响应帧)
+typedef void (*ctpb_send_cb_t)(const uint8_t *data, size_t len);
+void ctpb_set_send_cb(ctpb_send_cb_t cb);
 
 //--------------------------------------------------------------------+
 // 单元测试
